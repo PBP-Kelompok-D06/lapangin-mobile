@@ -1,3 +1,4 @@
+// ignore: unused_import
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:lapangin/landing/widgets/left_drawer.dart'; 
@@ -6,6 +7,7 @@ import 'package:lapangin/landing/models/lapangan_entry.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart'; 
 import 'package:provider/provider.dart';
 import 'package:lapangin/config.dart';
+import 'package:lapangin/booking/screens/booking_screen.dart'; // Import BookingScreen
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -19,16 +21,13 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isLoading = true;
   String _errorMessage = '';
 
-  final String apiUrl = "http://localhost:8000/api/booking/"; 
-  final String _baseServerUrl = "http://localhost:8000"; 
-
   String _userName = "User"; 
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _setUserName(); // Panggil fungsi untuk mengatur nama
+      _setUserName();
       fetchLapanganData();
     });
   }
@@ -64,7 +63,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   String _getInitials(String name) {
-    if (name.isEmpty) return "U"; // Default 'U' untuk 'User'
+    if (name.isEmpty) return "U";
     final parts = name.trim().split(' ');
     String initials = parts.first[0].toUpperCase();
     if (parts.length > 1) {
@@ -72,8 +71,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     return initials;
   }
-  // ---------------------------------------------
-
 
   Future<void> fetchLapanganData() async {
     final request = context.read<CookieRequest>();
@@ -83,44 +80,56 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     try {
-      final response = await request.get(apiUrl);
+      // Gunakan Config.baseUrl dan Config.lapanganListEndpoint
+      final response = await request.get(
+        // kalo udah deploy di pws, ganti jadi baseUrl
+        // '${Config.baseUrl}${Config.lapanganListEndpoint}'
+        '${Config.localUrl}${Config.lapanganListEndpoint}'
+      );
       
       List<LapanganEntry> fetchedLapangans = [];
       
-      if (response is List) {
-        for (var item in response) {
-          
-          // *** PERUBAHAN KRUSIAL: Membaca properti langsung dari 'item' ***
+      if (response is Map && response['status'] == 'success') {
+        // Response dari API baru format: {status: 'success', data: [...]}
+        final dataList = response['data'] as List;
+        
+        for (var item in dataList) {
           final id = item['id'];
-          final name = item['name'];
-          final typeString = item['type'];
-          final location = item['location'];
-          final price = item['price'];
+          final name = item['nama_lapangan'];
+          final typeString = item['jenis_olahraga'];
+          final location = item['lokasi'];
+          final price = item['harga_per_jam'];
           final rating = item['rating'];
-          final reviewCount = item['review_count'];
-          String imageUrl = item['image'] ?? ""; // Ambil gambar
+          final reviewCount = item['jumlah_ulasan'];
+          String imageUrl = item['foto_utama'] ?? "";
+          
           if (id != null && name != null && typeString != null) { 
-            if (!imageUrl.startsWith('http') && imageUrl.isNotEmpty) {
-              if (imageUrl.startsWith('/')) {
-                imageUrl = _baseServerUrl + imageUrl;
-              } else {
-                imageUrl = '$_baseServerUrl/$imageUrl';
-              }
+            // Foto sudah full URL dari backend
+            if (imageUrl.isEmpty) {
+              imageUrl = "https://via.placeholder.com/400x300?text=No+Image";
+            }
+            
+            // Cari type dari enum, atau gunakan default
+            Type lapanganType;
+            try {
+              lapanganType = typeValues.map[typeString] ?? typeValues.map.values.first;
+            } catch (e) {
+              // Jika gagal, gunakan value pertama dari enum
+              lapanganType = typeValues.map.values.first;
             }
             
             fetchedLapangans.add(LapanganEntry(
               id: id,
               name: name,
-              type: typeValues.map[typeString]!, // Ganti sementara karena typeValues tidak ada
+              type: lapanganType,
               location: location ?? "N/A",
-              price: price ?? 0,
+              price: (price is num) ? price.toInt() : 0,
               rating: (rating is num) ? rating.toDouble() : 0.0,
               reviewCount: reviewCount ?? 0,
               image: imageUrl, 
             ));
-
           } else {
-            print('Peringatan: Item data tidak valid (ID, Name, Type hilang, atau Tipe tidak dikenali): $item');
+            print('Peringatan: Item data tidak valid: $item');
           }
         }
 
@@ -129,9 +138,8 @@ class _MyHomePageState extends State<MyHomePage> {
           _isLoading = false;
         });
       } else {
-        throw Exception("API response is not a valid list format. Did you return a single object instead of a list?");
+        throw Exception("API response format tidak valid");
       }
-
 
     } catch (e) {
       String errorDetail = e.toString().contains('FormatException') 
@@ -139,11 +147,35 @@ class _MyHomePageState extends State<MyHomePage> {
           : e.toString();
           
       setState(() {
-        _errorMessage = 'Gagal mengambil data: $errorDetail. Pastikan URL server ($_baseServerUrl) dan server Django aktif.';
+        _errorMessage = 'Gagal mengambil data: $errorDetail. Pastikan server Django aktif.';
         _isLoading = false;
       });
-      print('Error fetching data: $e'); // Log error untuk debugging
+      print('Error fetching data: $e');
     }
+  }
+
+  // Fungsi untuk navigasi ke BookingScreen
+  void _navigateToBooking(LapanganEntry lapangan) {
+    final request = context.read<CookieRequest>();
+    
+    // Ambil session cookie dari CookieRequest
+    String sessionCookie = '';
+    if (request.cookies.isNotEmpty) {
+      sessionCookie = request.cookies.entries
+          .map((e) => '${e.key}=${e.value}')
+          .join('; ');
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BookingScreen(
+          lapanganId: lapangan.id,
+          sessionCookie: sessionCookie,
+          username: _userName,
+        ),
+      ),
+    );
   }
 
   Widget _buildFilterChip(String label) {
@@ -178,7 +210,7 @@ class _MyHomePageState extends State<MyHomePage> {
         elevation: 0, 
         iconTheme: const IconThemeData(color: Colors.black), 
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.end, // Konten rata kanan
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -300,7 +332,9 @@ class _MyHomePageState extends State<MyHomePage> {
               if (_isLoading)
                 const Center(child: Padding(
                   padding: EdgeInsets.all(30.0),
-                  child: CircularProgressIndicator(),
+                  child: CircularProgressIndicator(
+                    color: Color(0xFFA7BF6E),
+                  ),
                 ))
               else if (_errorMessage.isNotEmpty)
                 Center(child: Padding(
@@ -317,6 +351,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(height: 10),
                       ElevatedButton(
                         onPressed: fetchLapanganData,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFA7BF6E),
+                        ),
                         child: const Text('Coba Lagi'),
                       ),
                     ],
@@ -341,12 +378,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   itemBuilder: (context, index) {
                     return LapanganEntryCard(
                       lapangan: _lapangans[index],
-                      onTap: () {
-                        // Aksi ketika card diklik
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Kamu memilih ${_lapangans[index].name}")),
-                        );
-                      },
+                      onTap: () => _navigateToBooking(_lapangans[index]), // Navigasi ke BookingScreen
                     );
                   },
                 ),
@@ -356,8 +388,6 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
-      
-      
     );
   }
 }

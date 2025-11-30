@@ -232,7 +232,9 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await request.login(
-        "${Config.baseUrl}${Config.loginEndpoint}",
+        // klo udah deploy di pws pake baseURL
+        "${Config.localUrl}${Config.loginEndpoint}",
+        // "${Config.baseUrl}${Config.loginEndpoint}",
         {
           'username': _usernameController.text,
           'password': _passwordController.text,
