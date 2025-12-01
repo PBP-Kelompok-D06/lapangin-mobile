@@ -1,6 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:lapangin/authbooking/screens/login.dart';
-// import 'package:lapangin/landing/screens/menu.dart';
+import 'package:lapangin/booking/screens/my_bookings_screen.dart';
+import 'package:lapangin/landing/screens/menu.dart';
+// ignore: unused_import
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+// ignore: unused_import
+import 'package:provider/provider.dart';
+
+const TextStyle darkHeadingStyle = TextStyle(
+  color: Color(0xFF4D5833),
+  fontFamily: 'Montserrat',
+  fontSize: 20, 
+  fontStyle: FontStyle.normal,
+  fontWeight: FontWeight.w700,
+  height: 1.2,
+  letterSpacing: 0.4,
+);
+
+const TextStyle lightStyle = TextStyle(
+  color: Color(0xFFF8FBF2), 
+  fontFamily: 'Montserrat',
+  fontStyle: FontStyle.normal,
+  fontWeight: FontWeight.normal,
+);
+
+const TextStyle subheadingS9Style = TextStyle(
+  color: Color(0xFFFFFFFF),
+  fontFamily: 'Montserrat',
+  fontSize: 10,
+  fontStyle: FontStyle.normal,
+  fontWeight: FontWeight.w600,
+  height: 1.2,
+);
 
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
@@ -10,37 +41,71 @@ class LeftDrawer extends StatelessWidget {
     return Drawer(
       child: ListView(
         children: [
-          const DrawerHeader(
+          DrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.blue,
+              color: Color(0xFFA7BF6E),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Football News',
+                RichText(
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Lapang',
+                        style: lightStyle.copyWith(fontSize: 20),
+                      ),
+                      TextSpan(
+                        text: '.in',
+                        style: darkHeadingStyle.copyWith(fontSize: 20),
+                      ),
+                    ],
                   ),
                 ),
                 Padding(padding: EdgeInsets.all(10)),
                 Text(
-                  'Grab your favourite sport stuff! only here.',
-                  textAlign: TextAlign.center, 
-                  style: TextStyle(
-                    fontSize: 15,              
-                    color: Colors.white,
-                    fontWeight: FontWeight.normal,
-                  ),
+                  'Secure your favourite sport field! only here.',
+                  textAlign: TextAlign.left, 
+                  style: subheadingS9Style
                 ),
               ],
             ),
           ),
 
-          // --- ROUTING ---
+          ListTile(
+            leading: const Icon(Icons.home),
+            title: const Text('Booking'),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const MyHomePage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.group),
+            title: const Text('Community'),
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.calendar_today),
+            title: const Text('My Booking'),
+            onTap: () {
+              // Navigate langsung ke MyBookingsScreen tanpa parameter
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MyBookingsScreen(),
+                ),
+              );
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Logout'),
@@ -51,7 +116,6 @@ class LeftDrawer extends StatelessWidget {
               );
             },
           ),
-
         ],
       ),
     );
