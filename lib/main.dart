@@ -3,6 +3,12 @@ import 'package:lapangin/authbooking/screens/login.dart';
 import 'package:lapangin/admin-dashboard/screens/admin_login_screen.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+<<<<<<< HEAD
+=======
+// Sesuaikan path import dengan struktur foldermu
+import 'package:lapangin/community/screens/community_page.dart';
+// import 'package:lapangin/landing/screens/menu.dart';
+>>>>>>> 8e8a95a (community phase one)
 
 void main() {
   runApp(const MyApp());
