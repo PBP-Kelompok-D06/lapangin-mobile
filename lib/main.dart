@@ -4,7 +4,7 @@ import 'package:lapangin/admin-dashboard/screens/admin_login_screen.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 // Sesuaikan path import dengan struktur foldermu
-import 'package:lapangin/community/screens/community_page.dart';
+
 // import 'package:lapangin/landing/screens/menu.dart';
 
 void main() {
@@ -31,8 +31,8 @@ class MyApp extends StatelessWidget {
         
         // TEMPORARY: Set initial route ke AdminLoginScreen untuk testing
         // Ganti kembali ke LoginPage() setelah testing selesai
-        home: const AdminLoginScreen(), // <-- UBAH INI UNTUK TESTING ADMIN LOGIN
-        // home: const LoginPage(), // <-- Uncomment ini setelah testing
+        // home: const AdminLoginScreen(), // <-- UBAH INI UNTUK TESTING ADMIN LOGIN
+        home: const LoginPage(), // <-- Uncomment ini setelah testing
         
         // Atau bisa gunakan routes untuk navigasi lebih fleksibel
         routes: {

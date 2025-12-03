@@ -9,7 +9,7 @@ class AdminApiService {
   
   /// Login Admin
   /// 
-  /// POST /dashboard/api/login/
+  /// POST /accounts/login-flutter/
   /// 
   /// Returns:
   /// - Map dengan key 'status', 'message', 'data'
@@ -19,7 +19,8 @@ class AdminApiService {
     required String password,
   }) async {
     try {
-      final url = Uri.parse('$baseUrl/dashboard/api/login/');
+      // Gunakan endpoint login yang benar dari Config
+      final url = Uri.parse('$baseUrl${Config.loginEndpoint}');
       
       final response = await http.post(
         url,
@@ -46,8 +47,11 @@ class AdminApiService {
       if (responseData['status'] != true) {
         throw Exception(responseData['message'] ?? 'Login gagal');
       }
-      
-      return responseData;
+
+      // Parse user data - handle jika data ada di root atau di dalam key 'data'
+      // TODO: Pastikan backend mengirimkan role user. Jika tidak, default ke PEMILIK (lihat AdminUser.fromJson)
+      final userData = responseData['data'] ?? responseData;
+      return {'status': true, 'message': 'Login berhasil', 'data': userData};
       
     } catch (e) {
       print('❌ Login Error: $e');

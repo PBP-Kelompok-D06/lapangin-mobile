@@ -65,14 +65,39 @@ class MyHomePage extends StatelessWidget {
                     const Color(0xFF1E88E5),
                     () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommunityPage()))
                   ),
+
+                  // Tombol Admin Dashboard
+                  _buildMenuCard(
+                    context, 
+                    "Admin Dashboard", 
+                    Icons.admin_panel_settings, 
+                    const Color(0xFFC4DA6B), 
+                    () {
+                      // Menggunakan named route yang didefinisikan di main.dart
+                      Navigator.pushNamed(context, '/admin-login');
+                    }
+                  ),
                   
-                  // Contoh Tombol Lain (Placeholder)
-                  _buildMenuCard(context, "Sewa Lapangan", Icons.sports_soccer, Colors.green, () {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fitur Booking belum dipasang.")));
-                  }),
-                  _buildMenuCard(context, "Login", Icons.login, Colors.orange, () {
-                    // Nanti arahkan ke halaman Login PBP kamu
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Arahkan ke LoginPage()")));
+                  // Tombol Logout
+                  _buildMenuCard(context, "Logout", Icons.logout, Colors.red, () async {
+                    final request = Provider.of<CookieRequest>(context, listen: false);
+                    final response = await request.logout("http://zibeon-jonriano-lapangin2.pbp.cs.ui.ac.id/accounts/logout-flutter/");
+                    
+                    if (context.mounted) {
+                      String message = response["message"];
+                      if (response['status']) {
+                        String uname = response["username"];
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text("$message Sampai jumpa, $uname."),
+                        ));
+                        // Navigate back to login page
+                        Navigator.pushReplacementNamed(context, '/login');
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(message),
+                        ));
+                      }
+                    }
                   }),
                 ],
               ),
