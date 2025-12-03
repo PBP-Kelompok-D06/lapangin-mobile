@@ -3,6 +3,7 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:lapangin/community/models/community_model.dart';
 import 'package:lapangin/community/widgets/community_card.dart';
+import 'package:lapangin/config.dart';
 
 class CommunityPage extends StatefulWidget {
   const CommunityPage({super.key});
@@ -20,8 +21,8 @@ class _CommunityPageState extends State<CommunityPage> {
   final List<String> _categories = ["Jenis Olahraga", "Futsal", "Bulutangkis", "Basket", "Renang"];
   final List<String> _locations = ["Filter Lokasi", "Depok", "Jakarta", "Bogor", "Tangerang", "Bekasi"];
 
-  // Gunakan IP 10.0.2.2 jika pakai Emulator Android
-  final String baseUrl = "http://10.0.2.2:8000"; 
+  // Gunakan IP dari Config
+  final String baseUrl = Config.baseUrl;
 
   Future<List<Community>> fetchCommunities(CookieRequest request) async {
     final response = await request.get('$baseUrl/community/api/communities/');
@@ -51,18 +52,23 @@ class _CommunityPageState extends State<CommunityPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.menu, size: 28),
+                    icon: const Icon(Icons.menu, size: 32, color: Colors.black),
                     onPressed: () {
                       // Handle menu if needed
                     },
                   ),
-                  const Text(
-                    "Username",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const CircleAvatar(
-                    radius: 20,
-                    backgroundImage: NetworkImage("https://i.pravatar.cc/150?img=12"), // Placeholder
+                  Row(
+                    children: [
+                      const Text(
+                        "Username",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 12),
+                      const CircleAvatar(
+                        radius: 20,
+                        backgroundImage: NetworkImage("https://i.pravatar.cc/150?img=5"), // Placeholder avatar
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -75,11 +81,11 @@ class _CommunityPageState extends State<CommunityPage> {
                   children: [
                     // 2. Hero Section
                     Container(
-                      margin: const EdgeInsets.all(16.0),
+                      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                       height: 180,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(12),
                         image: const DecorationImage(
                           image: NetworkImage("https://images.unsplash.com/photo-1517649763962-0c623066013b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"),
                           fit: BoxFit.cover,
@@ -87,23 +93,46 @@ class _CommunityPageState extends State<CommunityPage> {
                       ),
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(12),
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors: [Colors.black.withValues(alpha: 0.1), Colors.black.withValues(alpha: 0.6)],
+                            colors: [Colors.black.withValues(alpha: 0.1), Colors.black.withValues(alpha: 0.5)],
                           ),
                         ),
                         padding: const EdgeInsets.all(16.0),
-                        alignment: Alignment.bottomLeft,
-                        child: const Text(
-                          "Bergabung dengan Komunitas\nOlahraga Terdekatmu!",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
-                          ),
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Bergabung dengan Komunitas\nOlahraga Terdekatmu!",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                height: 1.2,
+                                shadows: [
+                                  Shadow(
+                                    offset: Offset(0, 1),
+                                    blurRadius: 3.0,
+                                    color: Colors.black,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              "Main Bareng, Kenalan, dan Bangun Semangat Baru di Lapang.in",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -131,14 +160,14 @@ class _CommunityPageState extends State<CommunityPage> {
                             },
                             decoration: InputDecoration(
                               hintText: 'Ketikkan nama komunitas..',
-                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8.0),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide: BorderSide(color: Colors.grey[400]!),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8.0),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide: BorderSide(color: Colors.grey[400]!),
                               ),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             ),
@@ -221,8 +250,8 @@ class _CommunityPageState extends State<CommunityPage> {
         height: 40,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.black, width: 1.5),
-          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.black, width: 1.2),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: DropdownButtonHideUnderline(
           child: DropdownButton<String>(

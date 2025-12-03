@@ -3,6 +3,7 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:lapangin/community/models/community_model.dart';
 import 'package:lapangin/community/widgets/community_post_card.dart';
+import 'package:lapangin/config.dart';
 
 class CommunityDetailPage extends StatefulWidget {
   final Community community;
@@ -14,8 +15,8 @@ class CommunityDetailPage extends StatefulWidget {
 }
 
 class _CommunityDetailPageState extends State<CommunityDetailPage> {
-  // Gunakan IP 10.0.2.2 untuk emulator Android, atau localhost untuk Web
-  final String baseUrl = "http://10.0.2.2:8000"; 
+  // Gunakan IP dari Config
+  final String baseUrl = Config.baseUrl;
 
   Future<List<CommunityPost>> fetchPosts(CookieRequest request) async {
     final response = await request.get('$baseUrl/community/api/community/${widget.community.pk}/posts/');
@@ -52,87 +53,97 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 250.0,
-            pinned: true,
-            backgroundColor: Colors.white,
-            elevation: 0,
-            leading: IconButton(
-              icon: const CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(Icons.arrow_back, color: Colors.black),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          const Center(
+            child: Text(
+              "Hi, Username!  ",
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
-              onPressed: () => Navigator.pop(context),
             ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
+          ),
+          const CircleAvatar(
+            radius: 18,
+            backgroundImage: NetworkImage("https://i.pravatar.cc/150?img=5"), // Placeholder avatar
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. Hero Image Card
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              height: 180,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: Colors.grey[300],
+                image: imageUrl.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(imageUrl),
+                        fit: BoxFit.cover,
+                        onError: (exception, stackTrace) {
+                           print("Error loading image: $imageUrl");
+                        },
+                      )
+                    : null,
+              ),
+              child: Stack(
                 children: [
-                  imageUrl.isNotEmpty
-                      ? Image.network(
-                          imageUrl, 
-                          fit: BoxFit.cover,
-                          errorBuilder: (ctx, error, stackTrace) => Container(color: Colors.grey[300], child: const Icon(Icons.broken_image, color: Colors.grey, size: 50)),
-                        )
-                      : Container(color: Colors.grey[300], child: const Icon(Icons.sports, size: 80, color: Colors.grey)),
+                  if (imageUrl.isEmpty)
+                    const Center(child: Icon(Icons.sports, size: 60, color: Colors.grey)),
+                  
+                  // Gradient Overlay
                   Container(
                     decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withValues(alpha: 0.7),
+                          Colors.black.withValues(alpha: 0.6),
                         ],
                       ),
                     ),
                   ),
+                  
+                  // Text Content
                   Positioned(
-                    bottom: 20,
-                    left: 20,
-                    right: 20,
+                    bottom: 16,
+                    left: 16,
+                    right: 16,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF8B9E6D),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            widget.community.sportsType.toUpperCase(),
-                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
                         Text(
                           widget.community.communityName,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 24,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on, size: 16, color: Colors.white70),
-                            const SizedBox(width: 4),
-                            Text(
-                              widget.community.location,
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-                            const SizedBox(width: 16),
-                            const Icon(Icons.people, size: 16, color: Colors.white70),
-                            const SizedBox(width: 4),
-                            Text(
-                              "${widget.community.memberCount} Anggota",
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-                          ],
+                        Text(
+                          "${widget.community.sportsType} • ${widget.community.location}",
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
@@ -140,87 +151,203 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
                 ],
               ),
             ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
+
+            // 2. Tentang Komunitas Card
+            Container(
+              margin: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withValues(alpha: 0.1),
+                    spreadRadius: 1,
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+                border: Border.all(color: Colors.grey[200]!),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Tombol Join
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF8B9E6D), // Olive green
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 2,
-                      ),
-                      onPressed: () => joinCommunity(request),
-                      child: const Text(
-                        "Bergabung dengan Komunitas",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  
                   const Text(
                     "Tentang Komunitas",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     widget.community.description,
-                    style: TextStyle(color: Colors.grey[700], height: 1.6, fontSize: 14),
+                    style: TextStyle(color: Colors.grey[600], fontSize: 13, height: 1.5),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 16),
                   
+                  // Details Grid
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "Forum Diskusi",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      // Column 1
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.people_outline, size: 18, color: Color(0xFF8B9E6D)),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "${widget.community.memberCount} Anggota",
+                                  style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(Icons.person_outline, size: 18, color: Colors.blue),
+                                const SizedBox(width: 8),
+                                Text(
+                                  widget.community.contactPerson,
+                                  style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          // Navigate to create post page or show dialog
-                        },
-                        child: const Text("Lihat Semua", style: TextStyle(color: Color(0xFF8B9E6D))),
+                      // Column 2
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.calendar_today_outlined, size: 16, color: Colors.blue),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Dibuat : 03 Dec 2025", // Placeholder as requested
+                                  style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(Icons.phone_outlined, size: 16, color: Colors.red),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "08123456789", // Placeholder
+                                  style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                  const Divider(),
                 ],
               ),
             ),
-          ),
-          
-          // List Post Forum
-          FutureBuilder(
-            future: fetchPosts(request),
-            builder: (context, AsyncSnapshot<List<CommunityPost>> snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator()));
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.all(20), child: Center(child: Text("Belum ada diskusi."))));
-              } else {
-                return SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
+
+            // 3. Join Banner
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16.0),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE3F2FD), // Light blue
+                borderRadius: BorderRadius.circular(4),
+                border: const Border(
+                  left: BorderSide(color: Color(0xFF1565C0), width: 4),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, color: Color(0xFF1565C0), size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: const Text(
+                      "Bergabunglah untuk\nberpartisipasi dalam forum",
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        height: 1.2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: () => joinCommunity(request),
+                    icon: const Icon(Icons.person_add_alt_1, size: 18, color: Color(0xFF556B2F)), // Dark olive
+                    label: const Text("Gabung", style: TextStyle(color: Color(0xFF556B2F), fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFC5E1A5), // Light green
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), // Thicker button
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // 4. Forum Diskusi Header
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: [
+                  Icon(Icons.chat_bubble_outline, color: Color(0xFF8B9E6D), size: 24),
+                  SizedBox(width: 8),
+                  Text(
+                    "Forum Diskusi",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 8),
+
+            // 5. Forum List
+            FutureBuilder(
+              future: fetchPosts(request),
+              builder: (context, AsyncSnapshot<List<CommunityPost>> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: CircularProgressIndicator(),
+                  ));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Padding(
+                    padding: EdgeInsets.all(40.0),
+                    child: Column(
+                      children: [
+                        Text("Belum ada diskusi.", style: TextStyle(color: Colors.grey)),
+                      ],
+                    ),
+                  ));
+                } else {
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
                       final post = snapshot.data![index];
                       return CommunityPostCard(post: post);
                     },
-                    childCount: snapshot.data!.length,
-                  ),
-                );
-              }
-            },
-          ),
-          const SliverPadding(padding: EdgeInsets.only(bottom: 30)),
-        ],
+                  );
+                }
+              },
+            ),
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lapangin/community/models/community_model.dart';
 import 'package:lapangin/community/screens/community_detail_page.dart';
+import 'package:lapangin/config.dart';
 
 class CommunityCard extends StatelessWidget {
   final Community community;
@@ -9,10 +10,8 @@ class CommunityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Gunakan IP 10.0.2.2 jika pakai Emulator Android
-    // Sebaiknya baseUrl ini disimpan di file config terpisah, tapi untuk sekarang kita taruh sini atau pass dari parent.
-    // Agar konsisten dengan code sebelumnya, kita define disini atau handle logic urlnya.
-    const String baseUrl = "http://10.0.2.2:8000"; 
+    // Gunakan IP dari Config
+    final String baseUrl = Config.baseUrl; 
 
     String imageUrl = community.imageUrl ?? "";
     if (imageUrl.isNotEmpty && !imageUrl.startsWith('http')) {
