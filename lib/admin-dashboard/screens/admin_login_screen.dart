@@ -225,7 +225,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   const SizedBox(height: 24),
 
                   // Login Button
-                  SizedBox(
+                  Container(
                     width: double.infinity,
                     constraints: const BoxConstraints(maxWidth: 400),
                     height: 54,
