@@ -88,7 +88,6 @@ class _MyHomePageState extends State<MyHomePage> {
       if (response is List) {
         for (var item in response) {
           
-          // *** PERUBAHAN KRUSIAL: Membaca properti langsung dari 'item' ***
           final id = item['id'];
           final name = item['name'];
           final typeString = item['type'];
@@ -98,13 +97,6 @@ class _MyHomePageState extends State<MyHomePage> {
           final reviewCount = item['review_count'];
           String imageUrl = item['image'] ?? ""; // Ambil gambar
           if (id != null && name != null && typeString != null) { 
-            if (!imageUrl.startsWith('http') && imageUrl.isNotEmpty) {
-              if (imageUrl.startsWith('/')) {
-                imageUrl = _baseServerUrl + imageUrl;
-              } else {
-                imageUrl = '$_baseServerUrl/$imageUrl';
-              }
-            }
             
             fetchedLapangans.add(LapanganEntry(
               id: id,

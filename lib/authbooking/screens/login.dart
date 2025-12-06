@@ -234,7 +234,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await request.login(
-        "${Config.baseUrl}${Config.loginEndpoint}",
+        "${Config.localUrl}${Config.loginEndpoint}",
         {
           'username': _usernameController.text,
           'password': _passwordController.text,
@@ -246,7 +246,7 @@ class _LoginPageState extends State<LoginPage> {
       if (request.loggedIn && response['status'] == true) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => ReviewPage(fieldId: 5,)),
+          MaterialPageRoute(builder: (context) => ReviewPage(fieldId: 5)),
         );
 
         ScaffoldMessenger.of(context).showSnackBar(

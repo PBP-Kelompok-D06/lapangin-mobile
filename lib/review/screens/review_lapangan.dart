@@ -8,6 +8,7 @@ import 'package:lapangin/review/models/review_entry.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart'; 
 import 'package:provider/provider.dart';
 import 'package:lapangin/landing/widgets/left_drawer.dart'; 
+import 'package:lapangin/config.dart';
 
 class ReviewPage extends StatefulWidget{
   final int fieldId;
@@ -29,7 +30,7 @@ class _ReviewPage extends State<ReviewPage> {
   void initState() {
     super.initState();
 
-    apiUrl = "http://localhost:8000/review/api/${widget.fieldId}";
+    apiUrl = "${Config.localUrl}/review/api/${widget.fieldId}";
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;  
