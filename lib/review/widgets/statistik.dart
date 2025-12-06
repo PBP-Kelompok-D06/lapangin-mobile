@@ -40,6 +40,7 @@ class ReviewStats extends StatelessWidget {
               Text(
                 average.toStringAsFixed(1),
                 style: const TextStyle(
+                  
                   fontSize: 38,
                   fontWeight: FontWeight.bold,
                 ),
@@ -84,8 +85,8 @@ class ReviewStats extends StatelessWidget {
                     Expanded(
                       child: LinearProgressIndicator(
                         value: ratio,
-                        backgroundColor: Colors.grey.shade300,
-                        color: Colors.amber,
+                        backgroundColor: Color(0xFF212121),
+                        color: Color(0xFFB8D279),
                         minHeight: 8,
                         borderRadius: BorderRadius.circular(6),
                       ),

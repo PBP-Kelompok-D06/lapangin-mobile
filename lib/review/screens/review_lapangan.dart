@@ -1,16 +1,17 @@
 import 'dart:convert';
-
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:lapangin/review/widgets/add_review.dart';
-import 'package:lapangin/review/widgets/card_review.dart'; 
-import 'package:lapangin/review/widgets/statistik.dart'; 
-import 'package:lapangin/review/models/review_entry.dart'; 
-import 'package:pbp_django_auth/pbp_django_auth.dart'; 
+import 'package:lapangin/review/widgets/card_review.dart';
+import 'package:lapangin/review/widgets/statistik.dart';
+import 'package:lapangin/review/models/review_entry.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:lapangin/landing/widgets/left_drawer.dart'; 
+import 'package:lapangin/landing/widgets/left_drawer.dart';
 import 'package:lapangin/config.dart';
+import 'package:lapangin/review/widgets/chip.dart';
 
-class ReviewPage extends StatefulWidget{
+class ReviewPage extends StatefulWidget {
   final int fieldId;
   const ReviewPage({required this.fieldId, super.key});
 
@@ -19,12 +20,14 @@ class ReviewPage extends StatefulWidget{
 }
 
 class _ReviewPage extends State<ReviewPage> {
-  List<ReviewEntry> _reviews = [];
+  List<ReviewEntry> _reviews = []; 
+  List<ReviewEntry> _allReviews = []; 
   bool _isLoading = true;
   String _errorMessage = '';
+  String _selectedFilter = 'all'; 
 
   late final String apiUrl;
-  String _userName = "User"; 
+  String _userName = "User";
 
   @override
   void initState() {
@@ -33,7 +36,7 @@ class _ReviewPage extends State<ReviewPage> {
     apiUrl = "${Config.localUrl}/review/api/${widget.fieldId}";
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;  
+      if (!mounted) return;
       _setUserName();
 
       if (!mounted) return;
@@ -45,12 +48,14 @@ class _ReviewPage extends State<ReviewPage> {
     final request = context.read<CookieRequest>();
     final userData = request.jsonData;
 
-    print("--- Data User Tersimpan di CookieRequest (lapangin) ---");
-    print(userData);
-    print("-------------------------------------------------------");
+    const potentialKeys = [
+      'user',
+      'username',
+      'first_name',
+      'name',
+      'fullname'
+    ];
 
-    const potentialKeys = ['user','username', 'first_name', 'name', 'fullname'];
-    
     String foundName = "User";
 
     for (var key in potentialKeys) {
@@ -58,15 +63,14 @@ class _ReviewPage extends State<ReviewPage> {
         final nameCandidate = userData[key].toString();
         if (nameCandidate.isNotEmpty) {
           foundName = nameCandidate;
-          print("Ditemukan nama pengguna dengan kunci: $key. Nilai: $foundName");
           break;
         }
       }
     }
-    
+
     if (!mounted) return;
     setState(() {
-      _userName = foundName!;
+      _userName = foundName;
     });
   }
 
@@ -80,73 +84,90 @@ class _ReviewPage extends State<ReviewPage> {
     return initials;
   }
 
+  void _applyLocalFilter() {
+    List<ReviewEntry> filtered = List.from(_allReviews);
+
+    final formatter = DateFormat('dd MMM yyyy HH:mm');
+
+    if (_selectedFilter == "terbaru") {
+      filtered.sort((a, b) {
+        final dateA = formatter.parse(a.createdAt);
+        final dateB = formatter.parse(b.createdAt);
+        return dateB.compareTo(dateA);
+      });
+    } 
+    else if (_selectedFilter != "all") {
+      int rating = int.parse(_selectedFilter);
+      filtered = filtered.where((r) => r.rating == rating).toList();
+    }
+
+    setState(() {
+      _reviews = filtered;  
+    });
+  }
+
   Future<void> fetchReviewData() async {
-    if(!mounted) return;
+    if (!mounted) return;
     final request = context.read<CookieRequest>();
-    setState((){
+
+    setState(() {
       _isLoading = true;
       _errorMessage = '';
-
     });
 
-    try{
+    try {
       final response = await request.get(apiUrl);
-      if(!mounted) return;
+
+      if (!mounted) return;
 
       List<ReviewEntry> fetchedReviews = [];
 
-      if(response is List){
-        for (var item in response){
-          final id = item['id'];
-          final fieldId = item['field_id'];
-          final fieldName = item['fieldName'];
-          final name = item['user'];
-          final content = item['content'];
-          final rating = item['rating'];
-          final createdAt = item['created_at'];
-          final isOwner = item['is_owner'];
-
-          fetchedReviews.add(ReviewEntry(id: id, field_id: fieldId, fieldName: fieldName,user: name, content: content, rating: rating, createdAt: createdAt, isOwner: isOwner));
+      if (response is List) {
+        for (var item in response) {
+          fetchedReviews.add(ReviewEntry(
+            id: item['id'],
+            field_id: item['field_id'],
+            fieldName: item['fieldName'],
+            user: item['user'],
+            content: item['content'],
+            rating: item['rating'],
+            createdAt: item['created_at'],
+            isOwner: item['is_owner'],
+          ));
         }
 
-        setState((){
-          _reviews = fetchedReviews;
+        _allReviews = fetchedReviews;
+
+        _applyLocalFilter();
+
+        setState(() {
           _isLoading = false;
         });
-
       } else {
-        Exception("API response is not a valid list format. Did you return a single object instead of a list?");
+        throw Exception("API response invalid");
       }
     } catch (e) {
-      if(!mounted) return;
+      if (!mounted) return;
 
-      String errorDetail = e.toString().contains('FormatException') 
-          ? 'Respons bukan JSON (mungkin HTML/halaman login/404). Cek URL Django.'
-          : e.toString();
-          
       setState(() {
-        _errorMessage = 'Gagal mengambil data: $errorDetail. Pastikan URL server ($apiUrl) dan server Django aktif.';
+        _errorMessage = "Gagal mengambil data: $e";
         _isLoading = false;
       });
-      print('Error fetching data: $e');
-
     }
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     String firstName = _userName.split(' ').first;
-    final request = context.watch<CookieRequest>();
-
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0, 
-        iconTheme: const IconThemeData(color: Colors.black), 
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.end, 
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -163,7 +184,7 @@ class _ReviewPage extends State<ReviewPage> {
             ),
             const SizedBox(width: 12),
             CircleAvatar(
-              radius: 20, 
+              radius: 20,
               backgroundColor: const Color(0xFF6B8E23),
               child: Text(
                 _getInitials(_userName),
@@ -181,39 +202,56 @@ class _ReviewPage extends State<ReviewPage> {
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: 
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Ulasan untuk ${_reviews.isNotEmpty ? _reviews.first.fieldName : 'Lapangan'}",
-                    style: const TextStyle(
-                      color: Color(0xFF000000),
-                      fontFamily: 'Montserrat',
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      height: 1.2,   // line-height 120%
-                      letterSpacing: 0.4,
-                    ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Ulasan untuk ${_reviews.isNotEmpty ? _reviews.first.fieldName : 'Lapangan'}",
+                  style: const TextStyle(
+                    color: Color(0xFF000000),
+                    fontFamily: 'Montserrat',
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                    letterSpacing: 0.4,
                   ),
                 ),
-                const SizedBox(height: 12),
-                ReviewStats(reviews: _reviews),
-                const SizedBox(height: 20),
-                if (_isLoading)
-                  const Center(child: Padding(
+              ),
+              const SizedBox(height: 12),
+              ReviewStats(reviews: _allReviews),
+              const SizedBox(height: 20),
+
+              /// === CHIP FILTER (LOKAL) ===
+              Align(
+                alignment: Alignment.centerLeft,
+                child: ReviewFilterChips(
+                  selectedFilter: _selectedFilter,
+                  onFilterChanged: (newFilter) {
+                    setState(() => _selectedFilter = newFilter);
+                    _applyLocalFilter();
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              if (_isLoading)
+                const Center(
+                  child: Padding(
                     padding: EdgeInsets.all(30.0),
                     child: CircularProgressIndicator(),
-                  ))
-                else if (_errorMessage.isNotEmpty)
-                  Center(child: Padding(
+                  ),
+                )
+              else if (_errorMessage.isNotEmpty)
+                Center(
+                  child: Padding(
                     padding: const EdgeInsets.all(30.0),
                     child: Column(
                       children: [
-                        const Icon(Icons.error_outline, color: Colors.red, size: 40),
+                        const Icon(Icons.error_outline,
+                            color: Colors.red, size: 40),
                         const SizedBox(height: 10),
                         Text(
                           _errorMessage,
@@ -227,48 +265,54 @@ class _ReviewPage extends State<ReviewPage> {
                         ),
                       ],
                     ),
-                  )
+                  ),
                 )
-                else if (_reviews.isEmpty)
-                  const Center(child: Padding(
+              else if (_reviews.isEmpty)
+                const Center(
+                  child: Padding(
                     padding: EdgeInsets.all(30.0),
-                    child: Text("Belum ada review"), 
-                  )
+                    child: Text("Belum ada review"),
+                  ),
                 )
-                else
-                  ListView.separated(
-                  physics: NeverScrollableScrollPhysics(),
+              else
+                ListView.separated(
+                  physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
                   itemCount: _reviews.length,
-                  separatorBuilder: (_, __) => SizedBox(height: 12),
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
-                    return ReviewCard(review: _reviews[index], onRefresh: fetchReviewData,);
+                    return ReviewCard(
+                      review: _reviews[index],
+                      onRefresh: fetchReviewData,
+                    );
                   },
                 ),
-                const SizedBox(height: 200),
-              ],
-          )
+
+              const SizedBox(height: 200),
+            ],
+          ),
         ),
       ),
+
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
-        color: Colors.white, 
+        color: Colors.white,
         child: SizedBox(
           width: double.infinity,
           height: 40,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFB8D279),
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-
             onPressed: () {
               final request = context.read<CookieRequest>();
               final scaffoldMessenger = ScaffoldMessenger.of(context);
-              
+
               showDialog(
                 context: context,
                 barrierDismissible: false,
@@ -279,21 +323,18 @@ class _ReviewPage extends State<ReviewPage> {
                     ),
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(
-                        maxWidth: 360,  
-                        minWidth: 300,  
+                        maxWidth: 360,
+                        minWidth: 300,
                       ),
                       child: AddReviewDialog(
                         onSubmit: (rating, content) async {
-                          print("Rating: $rating");
-                          print("Content: $content");
-
                           try {
                             final response = await request.post(
                               "http://localhost:8000/review/api/add/${widget.fieldId}/",
                               jsonEncode({
                                 "rating": rating.toString(),
                                 "content": content,
-                              })
+                              }),
                             );
 
                             if (mounted && dialogContext.mounted) {
@@ -301,15 +342,16 @@ class _ReviewPage extends State<ReviewPage> {
                             }
 
                             if (response["success"] == true) {
-                              // Berhasil
                               scaffoldMessenger.showSnackBar(
                                 SnackBar(
                                   content: Row(
                                     children: const [
-                                      Icon(Icons.check_circle, color: Colors.white),
+                                      Icon(Icons.check_circle,
+                                          color: Colors.white),
                                       SizedBox(width: 12),
                                       Expanded(
-                                        child: Text("Review berhasil ditambahkan!"),
+                                        child: Text(
+                                            "Review berhasil ditambahkan!"),
                                       ),
                                     ],
                                   ),
@@ -323,22 +365,22 @@ class _ReviewPage extends State<ReviewPage> {
                               );
 
                               if (mounted) {
-                                final newReview = ReviewEntry.fromJson(response["review"]);
-                                setState(() {
-                                  _reviews.insert(0, newReview);
-                                });
+                                final newReview =
+                                    ReviewEntry.fromJson(response["review"]);
+                                _allReviews.insert(0, newReview);
+                                _applyLocalFilter();
                               }
-                              
                             } else {
-                              // Gagal
                               scaffoldMessenger.showSnackBar(
                                 SnackBar(
                                   content: Row(
                                     children: [
-                                      const Icon(Icons.error, color: Colors.white),
+                                      const Icon(Icons.error,
+                                          color: Colors.white),
                                       const SizedBox(width: 12),
                                       Expanded(
-                                        child: Text(response["message"] ?? "Gagal menambahkan review"),
+                                        child: Text(response["message"] ??
+                                            "Gagal menambahkan review"),
                                       ),
                                     ],
                                   ),
@@ -352,20 +394,20 @@ class _ReviewPage extends State<ReviewPage> {
                               );
                             }
                           } catch (e) {
-                            print("Error adding review: $e");
-                            
                             if (mounted && dialogContext.mounted) {
                               Navigator.of(dialogContext).pop();
                             }
-                            
+
                             scaffoldMessenger.showSnackBar(
                               SnackBar(
                                 content: Row(
                                   children: [
-                                    const Icon(Icons.error, color: Colors.white),
+                                    const Icon(Icons.error,
+                                        color: Colors.white),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child: Text("Terjadi kesalahan: ${e.toString()}"),
+                                      child: Text(
+                                          "Terjadi kesalahan: ${e.toString()}"),
                                     ),
                                   ],
                                 ),
