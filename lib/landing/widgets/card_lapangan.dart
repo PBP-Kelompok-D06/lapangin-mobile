@@ -32,7 +32,6 @@ class LapanganEntryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Gambar Lapangan
             ClipRRect(
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
@@ -83,13 +82,13 @@ class LapanganEntryCard extends StatelessWidget {
 
             // Konten Card
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SizedBox(
-                    height:48.0,
+                    height:44.0,
                     child:
                   // Nama Lapangan
                     Text(
@@ -115,13 +114,13 @@ class LapanganEntryCard extends StatelessWidget {
                     style: const TextStyle(
                       fontFamily: 'Montserrat',
                       fontStyle: FontStyle.normal,
-                      fontSize: 10,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: Color.fromARGB(195, 33, 33, 1),
                     ),
                   ),
 
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
 
                   // Rating & Lokasi
                   Row(
