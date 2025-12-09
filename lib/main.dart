@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
           .copyWith(secondary: Colors.blueAccent[400]),
           useMaterial3: true,
         ),
-        home: const CommunityPage(),
+        home: const LoginPage(),
       ),
     );
   }

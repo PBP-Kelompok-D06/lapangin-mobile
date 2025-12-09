@@ -6,6 +6,6 @@ class Config {
   static const String logoutEndpoint = "/accounts/logout-flutter/";
   
   // Untuk development
-  static const String localUrl = "http://10.0.2.2:8000"; // Android emulator
-  // static const String localUrl = "http://localhost:8000"; // Chrome
+  // static const String localUrl = "http://10.0.2.2:8000"; // Android emulator
+  static const String localUrl = "http://localhost:8000"; // Chrome
 }

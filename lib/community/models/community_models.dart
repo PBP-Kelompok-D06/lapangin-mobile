@@ -57,6 +57,7 @@ class CommunityPost {
   final String? imageUrl;
   final String createdAt;
   final int commentsCount;
+  final List<CommunityComment> comments; // Added comments list
 
   CommunityPost({
     required this.pk,
@@ -66,9 +67,13 @@ class CommunityPost {
     this.imageUrl,
     required this.createdAt,
     required this.commentsCount,
+    required this.comments,
   });
 
   factory CommunityPost.fromJson(Map<String, dynamic> json) {
+    var commentsList = json['comments'] as List? ?? [];
+    List<CommunityComment> comments = commentsList.map((i) => CommunityComment.fromJson(i)).toList();
+
     return CommunityPost(
       pk: json['pk'],
       username: json['user']['username'] ?? 'Anonymous', // Nested JSON
@@ -77,6 +82,31 @@ class CommunityPost {
       imageUrl: json['image_url'],
       createdAt: json['created_at'] ?? '',
       commentsCount: json['comments_count'] ?? 0,
+      comments: comments,
+    );
+  }
+}
+
+// Model untuk Komentar
+class CommunityComment {
+  final int pk;
+  final String username;
+  final String content;
+  final String createdAt;
+
+  CommunityComment({
+    required this.pk,
+    required this.username,
+    required this.content,
+    required this.createdAt,
+  });
+
+  factory CommunityComment.fromJson(Map<String, dynamic> json) {
+    return CommunityComment(
+      pk: json['pk'],
+      username: json['user']['username'] ?? 'Anonymous',
+      content: json['content'] ?? '',
+      createdAt: json['created_at'] ?? '',
     );
   }
 }

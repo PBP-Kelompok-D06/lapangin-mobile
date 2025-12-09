@@ -7,6 +7,8 @@ import 'package:lapangin_mobile/community/models/community_models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lapangin_mobile/community/screens/community_detail_page.dart';
 import 'package:lapangin_mobile/community/widgets/community_card.dart'; // Pastikan widget ini ada
+import 'package:lapangin_mobile/landing/widgets/left_drawer.dart';
+import 'package:lapangin_mobile/config.dart';
 
 class CommunityPage extends StatefulWidget {
   const CommunityPage({Key? key}) : super(key: key);
@@ -27,10 +29,48 @@ class _CommunityPageState extends State<CommunityPage> {
   }
 
   Future<void> _loadUsername() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      currentUsername = prefs.getString('username') ?? "Guest";
-    });
+    final request = context.read<CookieRequest>();
+    final userData = request.jsonData;
+    
+    // Logic from menu.dart to enable consistent username retrieval
+    const potentialKeys = ['username', 'first_name', 'name', 'fullname'];
+    String? foundName;
+
+    for (var key in potentialKeys) {
+      if (userData.containsKey(key) && userData[key] != null) {
+        final nameCandidate = userData[key].toString();
+        if (nameCandidate.isNotEmpty) {
+          foundName = nameCandidate;
+          break;
+        }
+      }
+    }
+    
+    if (foundName != null) {
+      if (mounted) {
+        setState(() {
+          currentUsername = foundName!;
+        });
+      }
+    } else {
+       // Fallback to SharedPreferences if CookieRequest is empty (e.g. after refresh)
+       SharedPreferences prefs = await SharedPreferences.getInstance();
+       if (mounted) {
+         setState(() {
+           currentUsername = prefs.getString('username') ?? "Guest";
+         });
+       }
+    }
+  }
+
+  String _getInitials(String name) {
+    if (name.isEmpty) return "U";
+    final parts = name.trim().split(' ');
+    String initials = parts.first[0].toUpperCase();
+    if (parts.length > 1) {
+      initials += parts.last[0].toUpperCase();
+    }
+    return initials;
   }
   String _selectedCategory = "Jenis Olahraga";
   String _selectedLocation = "Filter Lokasi";
@@ -43,7 +83,9 @@ class _CommunityPageState extends State<CommunityPage> {
   Future<List<Community>> fetchCommunities(CookieRequest request) async {
     // GANTI URL SESUAI IP KOMPUTER MU (JANGAN LOCALHOST JIKA PAKAI EMULATOR)
     // Contoh Android Emulator: http://10.0.2.2:8000/community/api/communities/
-    final response = await request.get('http://127.0.0.1:8000/community/api/communities/');
+    // GANTI URL SESUAI IP KOMPUTER MU (JANGAN LOCALHOST JIKA PAKAI EMULATOR)
+    // Contoh Android Emulator: http://10.0.2.2:8000/community/api/communities/
+    final response = await request.get('${Config.localUrl}/community/api/communities/');
 
     List<Community> listCommunity = [];
     for (var d in response) {
@@ -57,40 +99,51 @@ class _CommunityPageState extends State<CommunityPage> {
   @override
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
+    String firstName = currentUsername.split(' ').first;
 
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0, 
+        iconTheme: const IconThemeData(color: Colors.black), 
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  "Hi, $firstName!",
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 12),
+            CircleAvatar(
+              radius: 20, 
+              backgroundColor: const Color(0xFF6B8E23),
+              child: Text(
+                _getInitials(currentUsername),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      drawer: const LeftDrawer(),
       body: SafeArea(
         child: Column(
           children: [
-            // 1. Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.menu, size: 32, color: Colors.black),
-                    onPressed: () {
-                      Scaffold.of(context).openDrawer(); // If drawer exists
-                    },
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        "Hi, $currentUsername!", // Placeholder username
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(width: 12),
-                      const CircleAvatar(
-                        radius: 20,
-                        backgroundImage: NetworkImage("https://i.pravatar.cc/150?img=12"), 
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            // 1. Header removed (moved to AppBar)
 
             Expanded(
               child: SingleChildScrollView(
