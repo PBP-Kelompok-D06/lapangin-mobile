@@ -2,12 +2,18 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:lapangin/review/screens/review_lapangan.dart';
+import 'package:lapangin/review/widgets/card_review.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 import '../models/lapangan_detail.dart';
+import 'package:lapangin/config.dart';
+import 'package:lapangin/review/widgets/statistik.dart';
+import 'package:provider/provider.dart';
+
 
 /// NOTE:
 /// - ganti BASE_URL sesuai environment kamu (emulator android: 10.0.2.2)
 /// - tambahkan permission Internet di AndroidManifest jika perlu
-const String BASE_URL = 'http://10.0.2.2:8000';
 
 class GalleryDetailScreen extends StatefulWidget {
   final int lapanganId;
@@ -29,16 +35,19 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
   }
 
   Future<LapanganDetail> fetchLapanganDetail(int id) async {
-    final uri = Uri.parse('$BASE_URL/api/lapangan/$id/');
-    final res = await http.get(uri);
-    if (res.statusCode == 200) {
-      final Map<String, dynamic> data = json.decode(res.body);
-      final detail = LapanganDetail.fromJson(data);
+    final uri = Uri.parse('${Config.localUrl}/gallery/api/lapangan/$id/');
+    final request = context.read<CookieRequest>();
+    final res = await request.get(uri.toString());
+    print("RESPONSE: $res");
+
+
+    if (res is Map<String, dynamic>) {
+      final detail = LapanganDetail.fromJson(res);
       // set initial hero (use first galleryImage or image)
       _currentHero ??= (detail.galleryImages.isNotEmpty ? detail.galleryImages[0] : detail.image);
       return detail;
     } else {
-      throw Exception('Failed to load detail (status ${res.statusCode})');
+      throw Exception('Failed to load detail (status ${res['status']})');
     }
   }
 
@@ -85,33 +94,37 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                   // HERO IMAGE
                   AspectRatio(
                     aspectRatio: 16 / 9,
-                    child: _currentHero != null
-                        ? Image.network(
-                            _currentHero!,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            loadingBuilder: (ctx, child, progress) {
-                              if (progress == null) return child;
-                              final pct = progress.cumulativeBytesLoaded / (progress.expectedTotalBytes ?? 1);
-                              return Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  Container(color: Colors.grey.shade200),
-                                  Center(child: CircularProgressIndicator(value: pct)),
-                                ],
-                              );
-                            },
-                            errorBuilder: (ctx, err, stack) {
-                              return Container(
-                                color: Colors.grey.shade200,
-                                child: const Center(child: Icon(Icons.broken_image, size: 48)),
-                              );
-                            },
-                          )
-                        : Container(
-                            color: Colors.grey.shade200,
-                            child: const Center(child: Icon(Icons.image, size: 48)),
-                          ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: _currentHero != null
+                          ? Image.network(
+                              "${Config.localUrl}/proxy-image/?url=${Uri.encodeComponent(Config.localUrl + "/" + _currentHero!)}",
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              loadingBuilder: (ctx, child, progress) {
+                                if (progress == null) return child;
+                                final pct = progress.cumulativeBytesLoaded /
+                                    (progress.expectedTotalBytes ?? 1);
+                                return Stack(
+                                  fit: StackFit.expand,
+                                  children: [
+                                    Container(color: Colors.grey.shade200),
+                                    Center(child: CircularProgressIndicator(value: pct)),
+                                  ],
+                                );
+                              },
+                              errorBuilder: (ctx, err, stack) {
+                                return Container(
+                                  color: Colors.grey.shade200,
+                                  child: const Center(child: Icon(Icons.broken_image, size: 48)),
+                                );
+                              },
+                            )
+                          : Container(
+                              color: Colors.grey.shade200,
+                              child: const Center(child: Icon(Icons.image, size: 48)),
+                            ),
+                    ),
                   ),
 
                   const SizedBox(height: 12),
@@ -143,7 +156,7 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
                                   child: Image.network(
-                                    img,
+                                    "${Config.localUrl}/proxy-image/?url=${Uri.encodeComponent(Config.localUrl +"/"+ img!)}",
                                     fit: BoxFit.cover,
                                     loadingBuilder: (ctx, child, progress) {
                                       if (progress == null) return child;
@@ -218,69 +231,115 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                     ),
 
                   // REVIEWS (show top 4)
-                  const Text('Ulasan teratas', style: TextStyle(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-                  ...detail.reviews.take(4).map((r) => _buildReviewTile(r)).toList(),
-
-                  const SizedBox(height: 24),
-
-                  // BUTTON BOOKING (simple)
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // redirect ke halaman booking app kamu
-                        // Navigator.pushNamed(context, '/booking', arguments: detail.id);
+                  ReviewStats(reviews: detail.reviews),
+                  SizedBox(height: 20),
+                  if (detail.reviews.isEmpty)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(30.0),
+                        child: Text("Belum ada review"),
+                      ),
+                    )
+                  else
+                    ListView.separated(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: 4,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        return ReviewCard(
+                          review: detail.reviews[index],
+                          onRefresh: () {
+                            setState(() {
+                              _futureDetail = fetchLapanganDetail(widget.lapanganId);
+                            });
+                          },
+                        );
                       },
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 14.0),
-                        child: Text('Booking Sekarang'),
+                    ),
+
+                  const SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      height: 40,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF383838),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ReviewPage(fieldId: detail.id),
+                            ),
+                          );
+                        },
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Text(
+                              "Lihat Semua Review",
+                              style: TextStyle(
+                                color: Color(0xFFB8D279),
+                                fontFamily: 'Montserrat',
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                  )
+
                 ],
               ),
             ),
           );
         },
       ),
-    );
-  }
-
-  Widget _buildReviewTile(GReview r) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            backgroundColor: Colors.green.shade100,
-            child: Text(r.user.isNotEmpty ? r.user[0].toUpperCase() : '?'),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(r.user, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    const SizedBox(width: 8),
-                    Text(r.createdAt, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                  ],
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        color: Colors.white,
+        child: SizedBox(
+          width: double.infinity,
+          height: 40,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFB8D279),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () {
+              //ke bion
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.add, color: Color(0xFF4D5833), size: 20),
+                SizedBox(width: 12),
+                Text(
+                  "Booking Sekarang",
+                  style: TextStyle(
+                    color: Color(0xFF4D5833),
+                    fontFamily: 'Montserrat',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                const SizedBox(height: 6),
-                Text(r.content),
-                const SizedBox(height: 6),
-                Row(children: [
-                  for (var i = 0; i < r.rating.round(); i++) const Icon(Icons.star, size: 16, color: Colors.amber),
-                  for (var i = 0; i < (5 - r.rating.round()); i++) const Icon(Icons.star_border, size: 16, color: Colors.grey),
-                ]),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
+
 }

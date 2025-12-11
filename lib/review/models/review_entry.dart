@@ -33,14 +33,14 @@ class ReviewEntry {
     });
 
     factory ReviewEntry.fromJson(Map<String, dynamic> json) => ReviewEntry(
-        id: json["id"],
-        field_id: json["field_id"],
-        fieldName: json["fieldName"],
-        user: json["user"],
-        content: json["content"],
-        rating: json["rating"],
-        createdAt: json["created_at"],
-        isOwner: json["is_owner"],
+        id: json["id"] is int ? json["id"] : int.tryParse("${json["id"]}") ?? 0,
+        field_id: json["field_id"] is int ? json["field_id"] : int.tryParse("${json["field_id"]}") ?? 0,
+        fieldName: json["fieldName"]?.toString() ?? "",
+        user: json["user"]?.toString() ?? "User",
+        content: json["content"]?.toString() ?? "",
+        rating: json["rating"] is int ? json["rating"] : int.tryParse("${json["rating"]}") ?? 0,
+        createdAt: json["created_at"]?.toString() ?? "",
+        isOwner: json["is_owner"] == true,
     );
 
     Map<String, dynamic> toJson() => {

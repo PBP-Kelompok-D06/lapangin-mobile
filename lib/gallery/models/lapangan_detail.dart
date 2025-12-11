@@ -1,5 +1,6 @@
 // lib/gallery/models/lapangan_detail.dart
 import 'package:flutter/foundation.dart';
+import 'package:lapangin/review/models/review_entry.dart';
 
 class LapanganDetail {
   final int id;
@@ -13,7 +14,7 @@ class LapanganDetail {
   final String? deskripsi;
   final List<String> fasilitas;
   final List<String> galleryImages;
-  final List<GReview> reviews;
+  final List<ReviewEntry> reviews;
 
   LapanganDetail({
     required this.id,
@@ -47,8 +48,15 @@ class LapanganDetail {
       deskripsi: json['deskripsi'] as String?,
       fasilitas: rawFas != null ? rawFas.map((e) => e.toString()).where((s) => s.isNotEmpty).toList() : <String>[],
       galleryImages: rawGallery != null ? rawGallery.map((e) => e.toString()).where((s) => s.isNotEmpty).toList() : <String>[],
-      reviews: rawReviews != null ? rawReviews.map((e) => GReview.fromJson(Map<String,dynamic>.from(e))).toList() : <GReview>[],
-    );
+      reviews: rawReviews != null
+          ? rawReviews
+              .where((e) => e != null)
+              .map((e) => ReviewEntry.fromJson(
+                    Map<String, dynamic>.from(e as Map),
+                  ))
+              .toList()
+          : <ReviewEntry>[],
+          );
   }
 
   Map<String, dynamic> toJson() => {

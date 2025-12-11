@@ -198,7 +198,6 @@ class _ReviewPage extends State<ReviewPage> {
           ],
         ),
       ),
-      drawer: const LeftDrawer(),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -223,7 +222,6 @@ class _ReviewPage extends State<ReviewPage> {
               ReviewStats(reviews: _allReviews),
               const SizedBox(height: 20),
 
-              /// === CHIP FILTER (LOKAL) ===
               Align(
                 alignment: Alignment.centerLeft,
                 child: ReviewFilterChips(

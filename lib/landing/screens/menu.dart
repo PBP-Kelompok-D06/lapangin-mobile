@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:lapangin/gallery/screens/gallery_detail_screen.dart';
 import 'package:lapangin/landing/widgets/left_drawer.dart'; 
 import 'package:lapangin/landing/widgets/card_lapangan.dart'; 
 import 'package:lapangin/landing/models/lapangan_entry.dart'; 
 import 'package:pbp_django_auth/pbp_django_auth.dart'; 
 import 'package:provider/provider.dart';
+import 'package:lapangin/gallery/screens/gallery_detail_screen.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -636,9 +638,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         return LapanganEntryCard(
                           lapangan: _filteredLapangans[index],
                           onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("Kamu memilih ${_filteredLapangans[index].name}")),
-                            );
+                            Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => GalleryDetailScreen(lapanganId: _filteredLapangans[index].id)),
+                                    );                            
                           },
                         );
                       },
