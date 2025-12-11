@@ -628,10 +628,14 @@ Text(
                     return LapanganEntryCard(
                       lapangan: _lapangans[index],
                       onTap: () {
-                        // Aksi ketika card diklik
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Kamu memilih ${_lapangans[index].name}")),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => GalleryDetailScreen(lapanganId: _lapangans[index].id),
+                          ),
                         );
+                        // Aksi ketika card diklik
+                        
                       },
                     );
                   },

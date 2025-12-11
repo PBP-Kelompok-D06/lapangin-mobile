@@ -9,6 +9,7 @@ import '../models/lapangan_detail.dart';
 import 'package:lapangin/config.dart';
 import 'package:lapangin/review/widgets/statistik.dart';
 import 'package:provider/provider.dart';
+import 'package:lapangin/booking/screens/booking_screen.dart';
 
 
 /// NOTE:
@@ -68,9 +69,46 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final request = context.read<CookieRequest>();
+    final String _userName = request.jsonData['username'] ?? "User";
+    final String firstName = _userName.split(' ').first;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gallery'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  "Hi, $firstName!",
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 12),
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: const Color(0xFF6B8E23),
+              child: Text(
+                firstName.isNotEmpty ? firstName[0].toUpperCase() : "U",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
       body: FutureBuilder<LapanganDetail>(
         future: _futureDetail,
@@ -318,6 +356,12 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
               ),
             ),
             onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BookingScreen(lapanganId: widget.lapanganId, sessionCookie: request.cookies['sessionid']?.value ?? "", username: request.jsonData['username']),
+                ),
+              );
               //ke bion
             },
             child: Row(
