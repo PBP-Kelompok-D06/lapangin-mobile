@@ -39,6 +39,8 @@ dependencies:
   pbp_django_auth: ^0.4.0
   http: ^1.6.0
   fluttertoast: ^9.0.0
+  intl: ^0.18.1         
+  url_launcher: ^6.2.1  
 
 dev_dependencies:
   flutter_test:

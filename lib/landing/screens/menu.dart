@@ -5,6 +5,7 @@ import 'package:lapangin/landing/widgets/card_lapangan.dart';
 import 'package:lapangin/landing/models/lapangan_entry.dart'; 
 import 'package:pbp_django_auth/pbp_django_auth.dart'; 
 import 'package:provider/provider.dart';
+import 'package:lapangin/booking/screens/booking_screen.dart';
 import 'package:lapangin/gallery/screens/gallery_detail_screen.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -100,6 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
       
       if (response is List) {
         for (var item in response) {
+          
           final id = item['id'];
           final name = item['name'];
           final typeString = item['type'];
@@ -110,6 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
           String imageUrl = item['image'] ?? "";
           
           if (id != null && name != null && typeString != null) { 
+            
             fetchedLapangans.add(LapanganEntry(
               id: id,
               name: name,
@@ -580,7 +583,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: [
                       const Icon(Icons.error_outline, color: Colors.red, size: 40),
                       const SizedBox(height: 10),
-                      Text(
+Text(
                         _errorMessage,
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: Colors.red),
@@ -611,42 +614,27 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ))
               else
-                Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: Text(
-                        'Ditemukan ${_filteredLapangans.length} lapangan',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    GridView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, 
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 0.75,
-                      ),
-                      itemCount: _filteredLapangans.length,
-                      itemBuilder: (context, index) {
-                        return LapanganEntryCard(
-                          lapangan: _filteredLapangans[index],
-                          onTap: () {
-                            Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => GalleryDetailScreen(lapanganId: _filteredLapangans[index].id)),
-                                    );                            
-                          },
+                GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, 
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 0.75,
+                  ),
+                  itemCount: _lapangans.length,
+                  itemBuilder: (context, index) {
+                    return LapanganEntryCard(
+                      lapangan: _lapangans[index],
+                      onTap: () {
+                        // Aksi ketika card diklik
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Kamu memilih ${_lapangans[index].name}")),
                         );
                       },
-                    ),
-                  ],
+                    );
+                  },
                 ),
               
               const SizedBox(height: 80), 

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lapangin/authbooking/screens/login.dart';
+import 'package:lapangin/booking/screens/my_bookings_screen.dart';
+import 'package:lapangin/landing/screens/menu.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 
 const TextStyle darkHeadingStyle = TextStyle(
   color: Color(0xFF4D5833),
@@ -19,7 +23,7 @@ const TextStyle lightStyle = TextStyle(
 );
 
 const TextStyle subheadingS9Style = TextStyle(
-  color: Color(0xFFFFFFFF), // #FFF (Putih)
+  color: Color(0xFFFFFFFF),
   fontFamily: 'Montserrat',
   fontSize: 16,
   fontStyle: FontStyle.normal,
@@ -63,7 +67,6 @@ class LeftDrawer extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 Padding(padding: EdgeInsets.all(10)),
                 Text(
                   'Cari lapangan, pilih jadwal, langsung main!',
@@ -75,15 +78,17 @@ class LeftDrawer extends StatelessWidget {
           ),
 
           ListTile(
+            leading: const Icon(Icons.home),
             title: const Text('Booking'),
             onTap: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
+                MaterialPageRoute(builder: (context) => const MyHomePage()),
               );
             },
           ),
           ListTile(
+            leading: const Icon(Icons.group),
             title: const Text('Community'),
             onTap: () {
               Navigator.pushReplacement(
@@ -93,15 +98,20 @@ class LeftDrawer extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.calendar_today),
             title: const Text('My Booking'),
             onTap: () {
-              Navigator.pushReplacement(
+              // Navigate langsung ke MyBookingsScreen tanpa parameter
+              Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
+                MaterialPageRoute(
+                  builder: (context) => const MyBookingsScreen(),
+                ),
               );
             },
           ),
           ListTile(
+            leading: const Icon(Icons.logout),
             title: const Text('Logout'),
             onTap: () {
               Navigator.pushReplacement(
@@ -110,7 +120,6 @@ class LeftDrawer extends StatelessWidget {
               );
             },
           ),
-
         ],
       ),
     );
