@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:lapangin/gallery/screens/gallery_detail_screen.dart';
-import 'package:lapangin/landing/widgets/left_drawer.dart'; 
-import 'package:lapangin/landing/widgets/card_lapangan.dart'; 
-import 'package:lapangin/landing/models/lapangan_entry.dart'; 
-import 'package:pbp_django_auth/pbp_django_auth.dart'; 
+import 'package:lapangin/landing/widgets/left_drawer.dart';
+import 'package:lapangin/landing/widgets/card_lapangan.dart';
+import 'package:lapangin/landing/models/lapangan_entry.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:lapangin/booking/screens/booking_screen.dart';
-import 'package:lapangin/gallery/screens/gallery_detail_screen.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -20,12 +19,9 @@ class _MyHomePageState extends State<MyHomePage> {
   List<LapanganEntry> _filteredLapangans = [];
   bool _isLoading = true;
   String _errorMessage = '';
-
-  final String apiUrl = "http://localhost:8000/api/booking/"; 
-  final String _baseServerUrl = "http://localhost:8000"; 
-
+  final String apiUrl = "http://localhost:8000/api/booking/";
+  final String _baseServerUrl = "http://localhost:8000";
   String _userName = "User";
-  
   final TextEditingController _searchController = TextEditingController();
   Type? _selectedType;
   double? _selectedMinRating;
@@ -37,8 +33,10 @@ class _MyHomePageState extends State<MyHomePage> {
       _setUserName();
       fetchLapanganData();
     });
-    
-    _searchController.addListener(_applyFilters);
+    // PERBAIKAN: Tambahkan listener untuk search
+    _searchController.addListener(() {
+      _applyFilters();
+    });
   }
 
   @override
@@ -50,13 +48,11 @@ class _MyHomePageState extends State<MyHomePage> {
   void _setUserName() {
     final request = context.read<CookieRequest>();
     final userData = request.jsonData;
-
     print("--- Data User Tersimpan di CookieRequest (lapangin) ---");
     print(userData);
     print("-------------------------------------------------------");
 
     const potentialKeys = ['username', 'first_name', 'name', 'fullname'];
-
     String? foundName;
 
     for (var key in potentialKeys) {
@@ -69,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
     }
-    
+
     if (foundName != null) {
       setState(() {
         _userName = foundName!;
@@ -96,12 +92,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
     try {
       final response = await request.get(apiUrl);
-      
       List<LapanganEntry> fetchedLapangans = [];
-      
+
       if (response is List) {
         for (var item in response) {
-          
           final id = item['id'];
           final name = item['name'];
           final typeString = item['type'];
@@ -110,9 +104,8 @@ class _MyHomePageState extends State<MyHomePage> {
           final rating = item['rating'];
           final reviewCount = item['review_count'];
           String imageUrl = item['image'] ?? "";
-          
-          if (id != null && name != null && typeString != null) { 
-            
+
+          if (id != null && name != null && typeString != null) {
             fetchedLapangans.add(LapanganEntry(
               id: id,
               name: name,
@@ -121,10 +114,10 @@ class _MyHomePageState extends State<MyHomePage> {
               price: price ?? 0,
               rating: (rating is num) ? rating.toDouble() : 0.0,
               reviewCount: reviewCount ?? 0,
-              image: imageUrl, 
+              image: imageUrl,
             ));
           } else {
-            print('Peringatan: Item data tidak valid (ID, Name, Type hilang, atau Tipe tidak dikenali): $item');
+            print('Peringatan: Item data tidak valid: $item');
           }
         }
 
@@ -134,15 +127,14 @@ class _MyHomePageState extends State<MyHomePage> {
           _isLoading = false;
         });
       } else {
-        throw Exception("API response is not a valid list format. Did you return a single object instead of a list?");
+        throw Exception("API response is not a valid list format.");
       }
     } catch (e) {
-      String errorDetail = e.toString().contains('FormatException') 
-          ? 'Respons bukan JSON (mungkin HTML/halaman login/404). Cek URL Django.'
+      String errorDetail = e.toString().contains('FormatException')
+          ? 'Respons bukan JSON. Cek URL Django.'
           : e.toString();
-          
       setState(() {
-        _errorMessage = 'Gagal mengambil data: $errorDetail. Pastikan URL server ($_baseServerUrl) dan server Django aktif.';
+        _errorMessage = 'Gagal mengambil data: $errorDetail';
         _isLoading = false;
       });
       print('Error fetching data: $e');
@@ -155,11 +147,9 @@ class _MyHomePageState extends State<MyHomePage> {
         final matchesSearch = lapangan.name
             .toLowerCase()
             .contains(_searchController.text.toLowerCase());
-        
         final matchesType = _selectedType == null || lapangan.type == _selectedType;
-        
-        final matchesRating = _selectedMinRating == null || lapangan.rating >= _selectedMinRating!;
-        
+        final matchesRating =
+            _selectedMinRating == null || lapangan.rating >= _selectedMinRating!;
         return matchesSearch && matchesType && matchesRating;
       }).toList();
     });
@@ -364,7 +354,8 @@ class _MyHomePageState extends State<MyHomePage> {
     return "Rating ≥ ${_selectedMinRating!.toStringAsFixed(1)}";
   }
 
-  Widget _buildFilterChip(String label, VoidCallback onTap, {bool isTypeFilter = false, bool isRatingFilter = false}) {
+  Widget _buildFilterChip(String label, VoidCallback onTap,
+      {bool isTypeFilter = false, bool isRatingFilter = false}) {
     String displayLabel = label;
     if (isTypeFilter) {
       displayLabel = _getTypeLabel();
@@ -429,14 +420,12 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     String firstName = _userName.split(' ').first;
-    
     return Scaffold(
-      backgroundColor: Colors.white, 
-      
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0, 
-        iconTheme: const IconThemeData(color: Colors.black), 
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -455,7 +444,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const SizedBox(width: 12),
             CircleAvatar(
-              radius: 20, 
+              radius: 20,
               backgroundColor: const Color(0xFF6B8E23),
               child: Text(
                 _getInitials(_userName),
@@ -469,9 +458,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      
       drawer: const LeftDrawer(),
-
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -479,17 +466,17 @@ class _MyHomePageState extends State<MyHomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              
               Container(
                 width: double.infinity,
                 height: 160,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   image: const DecorationImage(
-                    image: NetworkImage("https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=2070&auto=format&fit=crop"), 
+                    image: NetworkImage(
+                        "https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=2070&auto=format&fit=crop"),
                     fit: BoxFit.cover,
                     colorFilter: ColorFilter.mode(
-                      Colors.black38, 
+                      Colors.black38,
                       BlendMode.darken,
                     ),
                   ),
@@ -517,15 +504,13 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 24),
-
               const Text(
                 "Cari Lapangan",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF6B8E23), 
+                  color: Color(0xFF6B8E23),
                 ),
               ),
               const SizedBox(height: 8),
@@ -534,7 +519,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 decoration: InputDecoration(
                   hintText: "Ketikkan nama lapangan..",
                   hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   prefixIcon: const Icon(Icons.search, color: Colors.grey),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
@@ -558,32 +544,33 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
-
               Row(
                 children: [
-                  _buildFilterChip("Jenis Lapangan", _showTypeFilterDialog, isTypeFilter: true),
+                  _buildFilterChip("Jenis Lapangan", _showTypeFilterDialog,
+                      isTypeFilter: true),
                   const SizedBox(width: 12),
-                  _buildFilterChip("Filter Ulasan", _showRatingFilterDialog, isRatingFilter: true),
+                  _buildFilterChip("Filter Ulasan", _showRatingFilterDialog,
+                      isRatingFilter: true),
                 ],
               ),
-
               const SizedBox(height: 20),
-
               if (_isLoading)
-                const Center(child: Padding(
+                const Center(
+                    child: Padding(
                   padding: EdgeInsets.all(30.0),
                   child: CircularProgressIndicator(),
                 ))
               else if (_errorMessage.isNotEmpty)
-                Center(child: Padding(
+                Center(
+                    child: Padding(
                   padding: const EdgeInsets.all(30.0),
                   child: Column(
                     children: [
-                      const Icon(Icons.error_outline, color: Colors.red, size: 40),
+                      const Icon(Icons.error_outline,
+                          color: Colors.red, size: 40),
                       const SizedBox(height: 10),
-Text(
+                      Text(
                         _errorMessage,
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: Colors.red),
@@ -597,14 +584,15 @@ Text(
                   ),
                 ))
               else if (_filteredLapangans.isEmpty)
-                Center(child: Padding(
+                Center(
+                    child: Padding(
                   padding: const EdgeInsets.all(30.0),
                   child: Column(
                     children: [
                       Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
                       const SizedBox(height: 16),
                       Text(
-                        _lapangans.isEmpty 
+                        _lapangans.isEmpty
                             ? "Tidak ada data lapangan ditemukan."
                             : "Tidak ada lapangan yang sesuai dengan filter.",
                         textAlign: TextAlign.center,
@@ -618,30 +606,28 @@ Text(
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, 
+                    crossAxisCount: 2,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                     childAspectRatio: 0.75,
                   ),
-                  itemCount: _lapangans.length,
+                  itemCount: _filteredLapangans.length,
                   itemBuilder: (context, index) {
                     return LapanganEntryCard(
-                      lapangan: _lapangans[index],
+                      lapangan: _filteredLapangans[index],
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => GalleryDetailScreen(lapanganId: _lapangans[index].id),
+                            builder: (context) => GalleryDetailScreen(
+                                lapanganId: _filteredLapangans[index].id),
                           ),
                         );
-                        // Aksi ketika card diklik
-                        
                       },
                     );
                   },
                 ),
-              
-              const SizedBox(height: 80), 
+              const SizedBox(height: 80),
             ],
           ),
         ),

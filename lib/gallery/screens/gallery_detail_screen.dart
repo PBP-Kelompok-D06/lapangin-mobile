@@ -295,45 +295,44 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                         );
                       },
                     ),
+                    const SizedBox(height: 20),
 
-                  const SizedBox(height: 20),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Container(
-                      height: 40,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF383838),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ReviewPage(fieldId: detail.id),
-                            ),
-                          );
-                        },
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Text(
-                              "Lihat Semua Review",
-                              style: TextStyle(
-                                color: Color(0xFFB8D279),
-                                fontFamily: 'Montserrat',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        height: 40,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF383838),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ReviewPage(fieldId: detail.id),
                               ),
-                            ),
-                          ],
+                            );
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Text(
+                                "Lihat Semua Review",
+                                style: TextStyle(
+                                  color: Color(0xFFB8D279),
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  )
-
+                    )
                 ],
               ),
             ),
