@@ -342,7 +342,7 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                       ],
                     ),
 
-                  // REVIEWS (show top 4)
+                  // S (show top 4)
                   ReviewStats(reviews: detail.reviews),
                   SizedBox(height: 20),
                   if (detail.reviews.isEmpty)
