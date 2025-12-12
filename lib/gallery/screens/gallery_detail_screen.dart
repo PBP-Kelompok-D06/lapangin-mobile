@@ -268,7 +268,7 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                       ],
                     ),
 
-                  // REVIEWS (show top 4)
+                  // S (show top 4)
                   ReviewStats(reviews: detail.reviews),
                   SizedBox(height: 20),
                   if (detail.reviews.isEmpty)
@@ -282,7 +282,7 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                     ListView.separated(
                       physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,
-                      itemCount: 4,
+                      itemCount: detail.reviews.length > 4 ? 4 : detail.reviews.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         return ReviewCard(
