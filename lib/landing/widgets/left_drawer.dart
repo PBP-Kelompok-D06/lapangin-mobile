@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:lapangin/authbooking/screens/login.dart';
-import 'package:lapangin/booking/screens/my_bookings_screen.dart';
-import 'package:lapangin/landing/screens/menu.dart';
+import 'package:lapangin_mobile/authbooking/screens/login.dart';
+import 'package:lapangin_mobile/booking/screens/my_bookings_screen.dart';
+import 'package:lapangin_mobile/landing/screens/menu.dart';
+import 'package:lapangin_mobile/community/screens/community_page.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:lapangin_mobile/config.dart';
 
 const TextStyle darkHeadingStyle = TextStyle(
   color: Color(0xFF4D5833),
@@ -93,7 +95,7 @@ class LeftDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
+                MaterialPageRoute(builder: (context) => const CommunityPage()),
               );
             },
           ),
@@ -101,8 +103,7 @@ class LeftDrawer extends StatelessWidget {
             leading: const Icon(Icons.calendar_today),
             title: const Text('My Booking'),
             onTap: () {
-              // Navigate langsung ke MyBookingsScreen tanpa parameter
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const MyBookingsScreen(),
@@ -113,11 +114,41 @@ class LeftDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Logout'),
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
-              );
+            onTap: () async {
+              final request = context.read<CookieRequest>();
+              try {
+                final response = await request.logout(
+                  "${Config.localUrl}${Config.logoutEndpoint}",
+                );
+                
+                if (context.mounted) {
+                   String message = response["message"];
+                   if (request.loggedIn) {
+                      message = "Logout failed";
+                   } else {
+                      message = "Logout successful";
+                   }
+                   
+                   ScaffoldMessenger.of(context).showSnackBar(
+                     SnackBar(content: Text(message)),
+                   );
+                   
+                   Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                  );
+                }
+              } catch (e) {
+                 if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Logout failed: $e")),
+                    );
+                     Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                    );
+                 }
+              }
             },
           ),
         ],

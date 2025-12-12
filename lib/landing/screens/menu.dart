@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:lapangin/gallery/screens/gallery_detail_screen.dart';
-import 'package:lapangin/landing/widgets/left_drawer.dart';
-import 'package:lapangin/landing/widgets/card_lapangan.dart';
-import 'package:lapangin/landing/models/lapangan_entry.dart';
+import 'package:lapangin_mobile/gallery/screens/gallery_detail_screen.dart';
+import 'package:lapangin_mobile/landing/widgets/left_drawer.dart';
+import 'package:lapangin_mobile/landing/widgets/card_lapangan.dart';
+import 'package:lapangin_mobile/landing/models/lapangan_entry.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:lapangin/booking/screens/booking_screen.dart';
+import 'package:lapangin_mobile/booking/screens/booking_screen.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -23,7 +23,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final String _baseServerUrl = "http://localhost:8000";
   String _userName = "User";
   final TextEditingController _searchController = TextEditingController();
-  Type? _selectedType;
+  FieldType? _selectedType;
   double? _selectedMinRating;
 
   @override
@@ -166,10 +166,10 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               ListTile(
                 title: const Text('Semua Jenis'),
-                leading: Radio<Type?>(
+                leading: Radio<FieldType?>(
                   value: null,
                   groupValue: _selectedType,
-                  onChanged: (Type? value) {
+                  onChanged: (FieldType? value) {
                     setState(() {
                       _selectedType = value;
                       _applyFilters();
@@ -180,10 +180,10 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               ListTile(
                 title: const Text('Futsal'),
-                leading: Radio<Type?>(
-                  value: Type.FUTSAL,
+                leading: Radio<FieldType?>(
+                  value: FieldType.FUTSAL,
                   groupValue: _selectedType,
-                  onChanged: (Type? value) {
+                  onChanged: (FieldType? value) {
                     setState(() {
                       _selectedType = value;
                       _applyFilters();
@@ -194,10 +194,10 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               ListTile(
                 title: const Text('Basket'),
-                leading: Radio<Type?>(
-                  value: Type.BASKET,
+                leading: Radio<FieldType?>(
+                  value: FieldType.BASKET,
                   groupValue: _selectedType,
-                  onChanged: (Type? value) {
+                  onChanged: (FieldType? value) {
                     setState(() {
                       _selectedType = value;
                       _applyFilters();
@@ -208,10 +208,10 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               ListTile(
                 title: const Text('Bulutangkis'),
-                leading: Radio<Type?>(
-                  value: Type.BULUTANGKIS,
+                leading: Radio<FieldType?>(
+                  value: FieldType.BULUTANGKIS,
                   groupValue: _selectedType,
-                  onChanged: (Type? value) {
+                  onChanged: (FieldType? value) {
                     setState(() {
                       _selectedType = value;
                       _applyFilters();
@@ -340,11 +340,11 @@ class _MyHomePageState extends State<MyHomePage> {
   String _getTypeLabel() {
     if (_selectedType == null) return "Jenis Lapangan";
     switch (_selectedType!) {
-      case Type.FUTSAL:
+      case FieldType.FUTSAL:
         return "Futsal";
-      case Type.BASKET:
+      case FieldType.BASKET:
         return "Basket";
-      case Type.BULUTANGKIS:
+      case FieldType.BULUTANGKIS:
         return "Bulutangkis";
     }
   }

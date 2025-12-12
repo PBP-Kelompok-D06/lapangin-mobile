@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:lapangin/authbooking/screens/login.dart';
+import 'package:lapangin_mobile/authbooking/screens/login.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-// import 'package:lapangin/landing/screens/menu.dart';
+import 'package:lapangin_mobile/landing/screens/menu.dart';
+import 'package:lapangin_mobile/community/screens/community_page.dart';
 
 void main() {
   runApp(const MyApp());

@@ -1,6 +1,6 @@
 // lib/gallery/models/lapangan_detail.dart
 import 'package:flutter/foundation.dart';
-import 'package:lapangin/review/models/review_entry.dart';
+import 'package:lapangin_mobile/review/models/review_entry.dart';
 
 class LapanganDetail {
   final int id;

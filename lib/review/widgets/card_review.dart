@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:lapangin/review/models/review_entry.dart';
+import 'package:lapangin_mobile/review/models/review_entry.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 
 class ReviewCard extends StatelessWidget {

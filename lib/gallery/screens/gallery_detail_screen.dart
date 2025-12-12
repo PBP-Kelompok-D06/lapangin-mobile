@@ -1,15 +1,14 @@
-// lib/gallery/screens/gallery_detail_screen.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:lapangin/review/screens/review_lapangan.dart';
-import 'package:lapangin/review/widgets/card_review.dart';
+import 'package:lapangin_mobile/review/screens/review_lapangan.dart';
+import 'package:lapangin_mobile/review/widgets/card_review.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import '../models/lapangan_detail.dart';
-import 'package:lapangin/config.dart';
-import 'package:lapangin/review/widgets/statistik.dart';
+import 'package:lapangin_mobile/config.dart';
+import 'package:lapangin_mobile/review/widgets/statistik.dart';
 import 'package:provider/provider.dart';
-import 'package:lapangin/booking/screens/booking_screen.dart';
+import 'package:lapangin_mobile/booking/screens/booking_screen.dart';
 import 'dart:math';
 
 /// NOTE:
