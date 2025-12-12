@@ -85,7 +85,7 @@ class ReviewStats extends StatelessWidget {
                     Expanded(
                       child: LinearProgressIndicator(
                         value: ratio,
-                        backgroundColor: Color(0xFF212121),
+                        backgroundColor: Color.fromARGB(255, 214, 214, 214),
                         color: Color(0xFFB8D279),
                         minHeight: 8,
                         borderRadius: BorderRadius.circular(6),

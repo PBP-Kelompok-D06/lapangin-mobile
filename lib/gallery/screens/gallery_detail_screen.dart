@@ -10,7 +10,7 @@ import 'package:lapangin/config.dart';
 import 'package:lapangin/review/widgets/statistik.dart';
 import 'package:provider/provider.dart';
 import 'package:lapangin/booking/screens/booking_screen.dart';
-
+import 'dart:math';
 
 /// NOTE:
 /// - ganti BASE_URL sesuai environment kamu (emulator android: 10.0.2.2)
@@ -19,7 +19,8 @@ import 'package:lapangin/booking/screens/booking_screen.dart';
 class GalleryDetailScreen extends StatefulWidget {
   final int lapanganId;
 
-  const GalleryDetailScreen({Key? key, required this.lapanganId}) : super(key: key);
+  const GalleryDetailScreen({Key? key, required this.lapanganId})
+    : super(key: key);
 
   @override
   _GalleryDetailScreenState createState() => _GalleryDetailScreenState();
@@ -41,11 +42,12 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
     final res = await request.get(uri.toString());
     print("RESPONSE: $res");
 
-
     if (res is Map<String, dynamic>) {
       final detail = LapanganDetail.fromJson(res);
       // set initial hero (use first galleryImage or image)
-      _currentHero ??= (detail.galleryImages.isNotEmpty ? detail.galleryImages[0] : detail.image);
+      _currentHero ??= (detail.galleryImages.isNotEmpty
+          ? detail.galleryImages[0]
+          : detail.image);
       return detail;
     } else {
       throw Exception('Failed to load detail (status ${res['status']})');
@@ -121,11 +123,16 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
           }
           final detail = snapshot.data!;
           // ensure hero is set
-          _currentHero ??= (detail.galleryImages.isNotEmpty ? detail.galleryImages[0] : detail.image);
+          _currentHero ??= (detail.galleryImages.isNotEmpty
+              ? detail.galleryImages[0]
+              : detail.image);
 
           return SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 12,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -141,26 +148,35 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                               width: double.infinity,
                               loadingBuilder: (ctx, child, progress) {
                                 if (progress == null) return child;
-                                final pct = progress.cumulativeBytesLoaded /
+                                final pct =
+                                    progress.cumulativeBytesLoaded /
                                     (progress.expectedTotalBytes ?? 1);
                                 return Stack(
                                   fit: StackFit.expand,
                                   children: [
                                     Container(color: Colors.grey.shade200),
-                                    Center(child: CircularProgressIndicator(value: pct)),
+                                    Center(
+                                      child: CircularProgressIndicator(
+                                        value: pct,
+                                      ),
+                                    ),
                                   ],
                                 );
                               },
                               errorBuilder: (ctx, err, stack) {
                                 return Container(
                                   color: Colors.grey.shade200,
-                                  child: const Center(child: Icon(Icons.broken_image, size: 48)),
+                                  child: const Center(
+                                    child: Icon(Icons.broken_image, size: 48),
+                                  ),
                                 );
                               },
                             )
                           : Container(
                               color: Colors.grey.shade200,
-                              child: const Center(child: Icon(Icons.image, size: 48)),
+                              child: const Center(
+                                child: Icon(Icons.image, size: 48),
+                              ),
                             ),
                     ),
                   ),
@@ -168,63 +184,100 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                   const SizedBox(height: 12),
 
                   // THUMBNAILS (scroll horizontal)
-                  SizedBox(
-                    height: 88,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        // combine galleryImages + fallback image
-                        ...{
-                          if (detail.galleryImages.isNotEmpty) ...detail.galleryImages else if (detail.image != null) detail.image!
-                        }.map((img) {
-                          final bool isActive = img == _currentHero;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: GestureDetector(
-                              onTap: () => _setHero(img),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 180),
-                                curve: Curves.easeOut,
-                                width: isActive ? 110 : 88,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: isActive ? Colors.green : Colors.white, width: 3),
-                                  boxShadow: isActive ? [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0,4))] : null,
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    "${Config.localUrl}/proxy-image/?url=${Uri.encodeComponent(Config.localUrl +"/"+ img!)}",
-                                    fit: BoxFit.cover,
-                                    loadingBuilder: (ctx, child, progress) {
-                                      if (progress == null) return child;
-                                      return Container(
+                  Center(
+                    child: SizedBox(
+                      height: 88,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        shrinkWrap: true,
+                        children: [
+                          // combine galleryImages + fallback image
+                          ...{
+                            if (detail.galleryImages.isNotEmpty)
+                              ...detail.galleryImages
+                            else if (detail.image != null)
+                              detail.image!,
+                          }.map((img) {
+                            final bool isActive = img == _currentHero;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: GestureDetector(
+                                onTap: () => _setHero(img),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 180),
+                                  curve: Curves.easeOut,
+                                  width: isActive ? 110 : 88,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isActive
+                                          ? Colors.green
+                                          : Colors.white,
+                                      width: 3,
+                                    ),
+                                    boxShadow: isActive
+                                        ? [
+                                            BoxShadow(
+                                              color: Colors.black12,
+                                              blurRadius: 8,
+                                              offset: Offset(0, 4),
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      "${Config.localUrl}/proxy-image/?url=${Uri.encodeComponent(Config.localUrl + "/" + img!)}",
+                                      fit: BoxFit.cover,
+                                      loadingBuilder: (ctx, child, progress) {
+                                        if (progress == null) return child;
+                                        return Container(
+                                          color: Colors.grey.shade200,
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (ctx, _, __) => Container(
                                         color: Colors.grey.shade200,
-                                        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                                      );
-                                    },
-                                    errorBuilder: (ctx, _, __) => Container(
-                                      color: Colors.grey.shade200,
-                                      child: const Center(child: Icon(Icons.broken_image)),
+                                        child: const Center(
+                                          child: Icon(Icons.broken_image),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          );
-                        }).toList(),
-                      ],
+                            );
+                          }).toList(),
+                        ],
+                      ),
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
 
                   // TITLE & PRICE
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(child: Text(detail.name, style: Theme.of(context).textTheme.titleLarge)),
-                      Text('Rp ${formatRupiah(detail.price)}',style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+                      Expanded(
+                        child: Text(
+                          detail.name,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'Rp ${formatRupiah(detail.price)}',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
 
@@ -235,11 +288,19 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                     children: [
                       Icon(Icons.star, color: Colors.amber, size: 18),
                       const SizedBox(width: 4),
-                      Text('${detail.rating}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                      Text(
+                        '${detail.rating}',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
                       const SizedBox(width: 12),
                       Icon(Icons.location_on, size: 16, color: Colors.grey),
                       const SizedBox(width: 4),
-                      Expanded(child: Text(detail.location, style: const TextStyle(color: Colors.grey))),
+                      Expanded(
+                        child: Text(
+                          detail.location,
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      ),
                     ],
                   ),
 
@@ -250,8 +311,15 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: detail.fasilitas.isNotEmpty
-                        ? detail.fasilitas.map((f) => Chip(label: Text(f))).toList()
-                        : [const Text('Tidak ada fasilitas terdaftar.', style: TextStyle(color: Colors.grey))],
+                        ? detail.fasilitas
+                              .map((f) => Chip(label: Text(f)))
+                              .toList()
+                        : [
+                            const Text(
+                              'Tidak ada fasilitas terdaftar.',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
                   ),
 
                   const SizedBox(height: 16),
@@ -261,9 +329,15 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Deskripsi', style: TextStyle(fontWeight: FontWeight.w600)),
+                        const Text(
+                          'Deskripsi',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                         const SizedBox(height: 6),
-                        Text(detail.deskripsi ?? '', textAlign: TextAlign.justify),
+                        Text(
+                          detail.deskripsi ?? '',
+                          textAlign: TextAlign.justify,
+                        ),
                         const SizedBox(height: 12),
                       ],
                     ),
@@ -282,57 +356,63 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                     ListView.separated(
                       physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,
-                      itemCount: 4,
+                      itemCount: min(4, detail.reviews.length),
                       separatorBuilder: (_, __) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         return ReviewCard(
                           review: detail.reviews[index],
                           onRefresh: () {
                             setState(() {
-                              _futureDetail = fetchLapanganDetail(widget.lapanganId);
+                              _futureDetail = fetchLapanganDetail(
+                                widget.lapanganId,
+                              );
                             });
                           },
                         );
                       },
                     ),
-                    const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        height: 40,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF383838),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ReviewPage(fieldId: detail.id),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      height: 40,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF383838),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ReviewPage(fieldId: detail.id),
+                            ),
+                          );
+                        },
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Text(
+                              "Lihat Semua Review",
+                              style: TextStyle(
+                                color: Color(0xFFB8D279),
+                                fontFamily: 'Montserrat',
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
                               ),
-                            );
-                          },
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Text(
-                                "Lihat Semua Review",
-                                style: TextStyle(
-                                  color: Color(0xFFB8D279),
-                                  fontFamily: 'Montserrat',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                    )
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -348,8 +428,7 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFB8D279),
-              padding:
-                  const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -358,7 +437,11 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => BookingScreen(lapanganId: widget.lapanganId, sessionCookie: request.cookies['sessionid']?.value ?? "", username: request.jsonData['username']),
+                  builder: (context) => BookingScreen(
+                    lapanganId: widget.lapanganId,
+                    sessionCookie: request.cookies['sessionid']?.value ?? "",
+                    username: request.jsonData['username'],
+                  ),
                 ),
               );
               //ke bion
@@ -384,5 +467,4 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
       ),
     );
   }
-
 }

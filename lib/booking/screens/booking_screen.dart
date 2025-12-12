@@ -36,7 +36,7 @@ class _BookingScreenState extends State<BookingScreen> {
   BookingSlotsResponse? _slotsResponse;
   bool _isLoading = true;
   String? _errorMessage;
-  
+
   DateTime _selectedDate = DateTime.now();
   int? _selectedSlotId;
 
@@ -58,7 +58,7 @@ class _BookingScreenState extends State<BookingScreen> {
     print("Logged in: ${request.loggedIn}");
     print("User data: ${request.jsonData}");
     print("Cookies count: ${request.cookies.length}");
-    
+
     final sessionCookie = request.cookies['sessionid'];
     if (sessionCookie != null) {
       print("Session Cookie available: true");
@@ -86,12 +86,14 @@ class _BookingScreenState extends State<BookingScreen> {
         final nameCandidate = userData[key].toString();
         if (nameCandidate.isNotEmpty) {
           foundName = nameCandidate;
-          print("Ditemukan nama pengguna dengan kunci: $key. Nilai: $foundName");
+          print(
+            "Ditemukan nama pengguna dengan kunci: $key. Nilai: $foundName",
+          );
           break;
         }
       }
     }
-    
+
     if (foundName != null) {
       setState(() {
         _userName = foundName!;
@@ -109,39 +111,41 @@ class _BookingScreenState extends State<BookingScreen> {
     return initials;
   }
 
-Future<void> _loadData() async {
-  setState(() {
-    _isLoading = true;
-    _errorMessage = null;
-  });
-
-  try {
-    final lapangan = await BookingService.getLapanganDetail(widget.lapanganId);
-    final slots = await BookingService.getAvailableSlots(
-      widget.lapanganId,
-      date: DateFormat('yyyy-MM-dd').format(_selectedDate),
-      days: 7,
-    );
-
-    // DEBUG: Print data yang diterima
-    print("=== 📅 SLOTS DATA DEBUG ===");
-    print("Requested days: 7");
-    print("Dates received: ${slots.slotsByDate.keys.length}");
-    print("Dates: ${slots.slotsByDate.keys.toList()}");
-    print("============================");
-
+  Future<void> _loadData() async {
     setState(() {
-      _lapangan = lapangan;
-      _slotsResponse = slots;
-      _isLoading = false;
+      _isLoading = true;
+      _errorMessage = null;
     });
-  } catch (e) {
-    setState(() {
-      _errorMessage = e.toString();
-      _isLoading = false;
-    });
+
+    try {
+      final lapangan = await BookingService.getLapanganDetail(
+        widget.lapanganId,
+      );
+      final slots = await BookingService.getAvailableSlots(
+        widget.lapanganId,
+        date: DateFormat('yyyy-MM-dd').format(_selectedDate),
+        days: 7,
+      );
+
+      // DEBUG: Print data yang diterima
+      print("=== 📅 SLOTS DATA DEBUG ===");
+      print("Requested days: 7");
+      print("Dates received: ${slots.slotsByDate.keys.length}");
+      print("Dates: ${slots.slotsByDate.keys.toList()}");
+      print("============================");
+
+      setState(() {
+        _lapangan = lapangan;
+        _slotsResponse = slots;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
   }
-}
 
   String _formatCurrency(double amount) {
     final formatter = NumberFormat.currency(
@@ -152,10 +156,10 @@ Future<void> _loadData() async {
     return formatter.format(amount);
   }
 
-String _getShortDayName(DateTime date) {
-  final shortNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-  return shortNames[date.weekday % 7];
-}
+  String _getShortDayName(DateTime date) {
+    final shortNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+    return shortNames[date.weekday % 7];
+  }
 
   void _selectSlot(BookingSlot slot) {
     if (slot.isAvailable) {
@@ -186,23 +190,23 @@ String _getShortDayName(DateTime date) {
 
     try {
       final request = context.read<CookieRequest>();
-      
+
       print("=== 🚀 PROCEED TO PAYMENT ===");
       print("Slot ID: $_selectedSlotId");
       print("User: $_userName");
 
       // GUNAKAN METHOD BARU YANG SAMA DENGAN MYBOOKINGS
       final result = await BookingService.createBookingWithRequest(
-        request, 
-        _selectedSlotId!
+        request,
+        _selectedSlotId!,
       );
 
       if (result['success'] == true) {
         Navigator.pop(context);
-        
+
         final bookingId = result['booking_id'];
         print("✅ Booking berhasil! ID: $bookingId");
-        
+
         // Gunakan CookieRequest langsung, bukan session cookie string
         Navigator.push(
           context,
@@ -220,33 +224,33 @@ String _getShortDayName(DateTime date) {
       } else {
         throw Exception(result['message'] ?? 'Gagal membuat booking');
       }
-      
     } catch (e) {
       Navigator.pop(context);
       print("=== ❌ ERROR ===");
       print("Error: $e");
-      
+
       _handlePaymentError(e);
     }
   }
 
   void _handlePaymentError(dynamic error) {
     String errorMessage = 'Gagal membuat booking';
-    
-    if (error.toString().contains('login') || 
+
+    if (error.toString().contains('login') ||
         error.toString().contains('authenticated') ||
         error.toString().contains('session')) {
       errorMessage = 'Session login telah berakhir. Silakan login ulang.';
-    } else if (error.toString().contains('sudah dibooking') || 
-               error.toString().contains('tidak tersedia')) {
+    } else if (error.toString().contains('sudah dibooking') ||
+        error.toString().contains('tidak tersedia')) {
       errorMessage = 'Slot sudah tidak tersedia. Silakan pilih slot lain.';
     } else if (error.toString().contains('dalam proses')) {
-      errorMessage = 'Slot sedang dalam proses booking. Silakan coba beberapa saat lagi.';
-    } else if (error.toString().contains('SocketException') || 
-               error.toString().contains('Network')) {
+      errorMessage =
+          'Slot sedang dalam proses booking. Silakan coba beberapa saat lagi.';
+    } else if (error.toString().contains('SocketException') ||
+        error.toString().contains('Network')) {
       errorMessage = 'Koneksi internet bermasalah. Periksa koneksi Anda.';
     }
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(errorMessage),
@@ -259,52 +263,179 @@ String _getShortDayName(DateTime date) {
   @override
   Widget build(BuildContext context) {
     String firstName = _userName.split(' ').first;
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white.withOpacity(0.7),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  "Hi, $firstName!",
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: 12),
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: const Color(0xFF6B8E23),
-              child: Text(
-                _getInitials(_userName),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFFA7BF6E)),
             )
           : _errorMessage != null
-              ? _buildErrorState()
-              : _buildContent(),
+          ? _buildErrorState()
+          : CustomScrollView(
+              slivers: [
+                // AppBar dengan User Info
+                SliverAppBar(
+                  expandedHeight: 300, // Disesuaikan dengan AspectRatio 16:9
+                  floating: false,
+                  pinned: true,
+                  backgroundColor: Colors.white,
+                  elevation: 0,
+                  iconTheme: const IconThemeData(color: Colors.black),
+                  // Border bawah AppBar saat collapsed
+                  bottom: PreferredSize(
+                    preferredSize: const Size.fromHeight(0),
+                    child: Container(height: 1, color: Colors.grey.shade200),
+                  ),
+                  // User Info di AppBar
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Hi, $firstName!",
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 12),
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundColor: const Color(0xFF6B8E23),
+                        child: Text(
+                          _getInitials(_userName),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Collapsing Image Header
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Container(
+                      color: Colors.white,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // Image dengan AspectRatio 16:9 seperti gallery_detail
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              top: 60, // Space untuk AppBar
+                              bottom: 20,
+                            ),
+                            child: AspectRatio(
+                              aspectRatio: 16 / 9,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    (_lapangan?.fotoUtama?.isNotEmpty ?? false)
+                                        ? "${Config.localUrl}/booking/proxy-image/?url=${Uri.encodeComponent(_lapangan!.fotoUtama!)}"
+                                        : "",
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Colors.grey.shade300,
+                                        child: const Icon(
+                                          Icons.image_not_supported,
+                                          size: 64,
+                                          color: Colors.grey,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Gradient overlay dengan AspectRatio yang sama
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              top: 60,
+                              bottom: 20,
+                            ),
+                            child: AspectRatio(
+                              aspectRatio: 16 / 9,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.5),
+                                      ],
+                                      stops: const [0.5, 1.0],
+                                    ),
+                                  ),
+                                  alignment: Alignment.bottomLeft,
+                                  padding: const EdgeInsets.all(12),
+                                  child: Text(
+                                    _lapangan?.namaLapangan ?? '',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black54,
+                                          blurRadius: 4,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Content
+                SliverToBoxAdapter(
+                  child: Container(
+                    color: Colors.white,
+                    child: Column(
+                      children: [
+                        _buildHeader(),
+                        _buildDatePicker(),
+                        _buildSlotsList(),
+                        const SizedBox(height: 100),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
       bottomNavigationBar: !_isLoading && _errorMessage == null
           ? _buildBottomBar()
           : null,
@@ -336,164 +467,33 @@ String _getShortDayName(DateTime date) {
     );
   }
 
-  Widget _buildContent() {
-    return Stack(
-      children: [
-        Positioned.fill(
-  child: Image.network(
-    (_lapangan?.fotoUtama?.isNotEmpty ?? false)
-        ? "${Config.localUrl}/booking/proxy-image/?url=${Uri.encodeComponent(_lapangan!.fotoUtama!)}"  // ✅ /booking/proxy-image/
-        : "",
-    fit: BoxFit.cover,
-    errorBuilder: (context, error, stackTrace) {
-      return Container(
-        color: Colors.grey.shade300,
-        child: const Icon(Icons.image_not_supported, size: 64, color: Colors.grey),
-      );
-    },
-  ),
-),
-        
-        Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withOpacity(0.3),
-                  Colors.transparent,
-                  Colors.transparent,
-                  Colors.black.withOpacity(0.1),
-                ],
-                stops: const [0.0, 0.1, 0.8, 1.0],
-              ),
-            ),
-          ),
-        ),
-        
-        Column(
-          children: [
-            const SizedBox(height: kToolbarHeight),
-            
-            Container(
-              height: 150,
-              width: double.infinity,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.network(
-  (_lapangan?.fotoUtama?.isNotEmpty ?? false)
-      ? "${Config.localUrl}/booking/proxy-image/?url=${Uri.encodeComponent(_lapangan!.fotoUtama!)}"  // ✅ /booking/proxy-image/
-      : "",
-  fit: BoxFit.cover,
-  errorBuilder: (context, error, stackTrace) {
-    return Container(
-      color: Colors.grey.shade300,
-      child: const Icon(Icons.image_not_supported, size: 64, color: Colors.grey),
-    );
-  },
-),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.7),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 16,
-                    right: 16,
-                    bottom: 16,
-                    child: Text(
-                      _lapangan?.namaLapangan ?? '',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      _buildHeader(),
-                      _buildDatePicker(),
-                      _buildSlotsList(),
-                      const SizedBox(height: 80),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(16),
       color: Colors.white,
+      width: double.infinity,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Pilih Tanggal',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
+          Text(
+            'Booking Lapangan',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
             ),
           ),
           const SizedBox(height: 8),
-          InkWell(
-            onTap: _showDatePicker,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(8),
-                color: Colors.white,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      DateFormat('dd/MM/yyyy').format(_selectedDate),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black87,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  Icon(Icons.calendar_today, size: 20, color: Colors.grey.shade500),
-                ],
-              ),
+          Text(
+            'Harga/jam:',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 12),
           Text(
-            'Harga/jam:  ${_formatCurrency(_lapangan?.hargaPerJam ?? 0)}',
+            '${_formatCurrency(_lapangan?.hargaPerJam ?? 0)}',
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -536,7 +536,7 @@ String _getShortDayName(DateTime date) {
 
     if (pickedDate != null && pickedDate != _selectedDate) {
       print("📅 Date picked: ${DateFormat('yyyy-MM-dd').format(pickedDate)}");
-      
+
       setState(() {
         _selectedDate = pickedDate;
         _selectedSlotId = null;
@@ -547,195 +547,225 @@ String _getShortDayName(DateTime date) {
     }
   }
 
-Widget _buildDatePicker() {
-  if (_slotsResponse == null) return const SizedBox();
+  Widget _buildDatePicker() {
+    if (_slotsResponse == null) return const SizedBox();
 
-  final dates = _slotsResponse!.slotsByDate.keys.toList()..sort();
-  final displayDates = dates.length > 7 ? dates.sublist(0, 7) : dates;
+    final dates = _slotsResponse!.slotsByDate.keys.toList()..sort();
+    final displayDates = dates.length > 7 ? dates.sublist(0, 7) : dates;
 
-  return Container(
-    color: Colors.white,
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Pilih Tanggal',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 80,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: displayDates.length,
-            itemBuilder: (context, index) {
-              final dateStr = displayDates[index];
-              final date = DateTime.parse(dateStr);
-              final isSelected = DateFormat('yyyy-MM-dd').format(date) ==
-                  DateFormat('yyyy-MM-dd').format(_selectedDate);
-
-              return Container(
-                width: 70,
-                margin: EdgeInsets.only(
-                  right: index == displayDates.length - 1 ? 0 : 8,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFF6B7A3E)
-                      : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isSelected
-                        ? const Color(0xFF6B7A3E)
-                        : Colors.grey.shade300,
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () {
-                      print("🗓️ Date selected: ${DateFormat('yyyy-MM-dd').format(date)}");
-                      setState(() {
-                        _selectedDate = date;
-                        _selectedSlotId = null; // Reset slot yang dipilih
-                      });
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _getShortDayName(date),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: isSelected 
-                                ? const Color(0xFFE8C900)
-                                : Colors.grey.shade600,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          DateFormat('d').format(date),
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: isSelected
-                                ? Colors.white
-                                : Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          DateFormat('MMM').format(date),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: isSelected
-                                ? Colors.white.withOpacity(0.9)
-                                : Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildSlotsList() {
-  if (_slotsResponse == null) return const SizedBox();
-
-  final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDate);
-  final slots = _slotsResponse!.slotsByDate[dateKey] ?? [];
-
-  // DEBUG: Print informasi tanggal dan slot
-  print("=== 🎯 SLOTS FOR SELECTED DATE ===");
-  print("Selected Date: $dateKey");
-  print("Available Slots: ${slots.length}");
-  print("===================================");
-
-  if (slots.isEmpty) {
     return Container(
-      height: 200,
       color: Colors.white,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.event_busy, size: 64, color: Colors.grey.shade400),
-            const SizedBox(height: 16),
-            Text(
-              'Tidak ada slot tersedia untuk tanggal ${DateFormat('d MMM yyyy').format(_selectedDate)}',
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-              textAlign: TextAlign.center,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Pilih Tanggal:',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          InkWell(
+            onTap: _showDatePicker,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.white,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      DateFormat('dd/MM/yyyy').format(_selectedDate),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.calendar_today,
+                    size: 20,
+                    color: Colors.grey.shade500,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 80,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: displayDates.length,
+              itemBuilder: (context, index) {
+                final dateStr = displayDates[index];
+                final date = DateTime.parse(dateStr);
+                final isSelected =
+                    DateFormat('yyyy-MM-dd').format(date) ==
+                    DateFormat('yyyy-MM-dd').format(_selectedDate);
+
+                return Container(
+                  width: 70,
+                  margin: EdgeInsets.only(
+                    right: index == displayDates.length - 1 ? 0 : 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFF6B7A3E) : Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected
+                          ? const Color(0xFF6B7A3E)
+                          : Colors.grey.shade300,
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        print(
+                          "🗓️ Date selected: ${DateFormat('yyyy-MM-dd').format(date)}",
+                        );
+                        setState(() {
+                          _selectedDate = date;
+                          _selectedSlotId = null; // Reset slot yang dipilih
+                        });
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _getShortDayName(date),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected
+                                  ? const Color(0xFFE8C900)
+                                  : Colors.grey.shade600,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            DateFormat('d').format(date),
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? Colors.white : Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            DateFormat('MMM').format(date),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: isSelected
+                                  ? Colors.white.withOpacity(0.9)
+                                  : Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  return Padding(
-    padding: const EdgeInsets.all(16),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Tambahkan header dengan tanggal yang dipilih
-        Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Text(
-            'Slot Tersedia - ${DateFormat('EEEE, d MMM yyyy').format(_selectedDate)}',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
+  Widget _buildSlotsList() {
+    if (_slotsResponse == null) return const SizedBox();
+
+    final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    final slots = _slotsResponse!.slotsByDate[dateKey] ?? [];
+
+    // DEBUG: Print informasi tanggal dan slot
+    print("=== 🎯 SLOTS FOR SELECTED DATE ===");
+    print("Selected Date: $dateKey");
+    print("Available Slots: ${slots.length}");
+    print("===================================");
+
+    if (slots.isEmpty) {
+      return Container(
+        height: 200,
+        color: Colors.white,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.event_busy, size: 64, color: Colors.grey.shade400),
+              const SizedBox(height: 16),
+              Text(
+                'Tidak ada slot tersedia untuk tanggal ${DateFormat('d MMM yyyy').format(_selectedDate)}',
+                style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Tambahkan header dengan tanggal yang dipilih
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Text(
+              'Slot Tersedia - ${DateFormat('EEEE, d MMM yyyy').format(_selectedDate)}',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
           ),
-        ),
-        GridView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.9,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
+          GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.9,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            itemCount: slots.length,
+            itemBuilder: (context, index) {
+              final slot = slots[index];
+              return BookingSlotCard(
+                slot: slot,
+                tanggal: _selectedDate, // ✅ KIRIM TANGGAL YANG DIPILIH
+                isSelected: _selectedSlotId == slot.id,
+                onTap: () => _selectSlot(slot),
+              );
+            },
           ),
-          itemCount: slots.length,
-          itemBuilder: (context, index) {
-            final slot = slots[index];
-            return BookingSlotCard(
-              slot: slot,
-              tanggal: _selectedDate, // ✅ KIRIM TANGGAL YANG DIPILIH
-              isSelected: _selectedSlotId == slot.id,
-              onTap: () => _selectSlot(slot),
-            );
-          },
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
   Widget _buildBottomBar() {
     return Container(
