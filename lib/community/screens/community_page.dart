@@ -82,7 +82,7 @@ class _CommunityPageState extends State<CommunityPage> {
   // Fungsi fetch data
   Future<List<Community>> fetchCommunities(CookieRequest request) async {
     // URL already configured in Config class
-    final response = await request.get('${Config.baseUrl}/community/api/communities/');
+    final response = await request.get('${Config.baseUrl}${Config.communityListEndpoint}');
 
     List<Community> listCommunity = [];
     for (var d in response) {

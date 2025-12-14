@@ -94,7 +94,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
   Future<void> _checkMembershipStatus() async {
     final request = context.read<CookieRequest>();
     // Pastikan endpoint ini sudah dibuat di urls.py Django
-    final url = '${Config.localUrl}/community/api/${widget.community.pk}/check-membership/';
+    final url = '${Config.baseUrl}${Config.communityDetailBase}${widget.community.pk}/check-membership/';
     
     try {
       final response = await request.get(url);
@@ -118,7 +118,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
   Future<List<CommunityPost>> fetchPosts(CookieRequest request) async {
     try {
       final response = await request.get(
-          '${Config.localUrl}/community/api/community/${widget.community.pk}/posts/');
+          '${Config.baseUrl}${Config.communityPostsBase}${widget.community.pk}/posts/');
 
       var postsData = response['posts']; 
       List<CommunityPost> listPosts = [];
@@ -139,7 +139,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
 
   // 3. Join Komunitas
   Future<void> joinCommunity(CookieRequest request) async {
-    final url = '${Config.localUrl}/community/api/${widget.community.pk}/join-flutter/';
+    final url = '${Config.baseUrl}${Config.communityDetailBase}${widget.community.pk}/join-flutter/';
     
     try {
       final response = await request.post(url, {});
@@ -174,7 +174,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
 
   // 4. Leave Komunitas
   Future<void> leaveCommunity(CookieRequest request) async {
-      final url = '${Config.localUrl}/community/api/${widget.community.pk}/leave-flutter/';
+      final url = '${Config.baseUrl}${Config.communityDetailBase}${widget.community.pk}/leave-flutter/';
 
       try {
         final response = await request.post(url, {});
@@ -211,7 +211,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
       }
 
       // URL FIX: api/<int:pk>/post/create-flutter/
-      final url = '${Config.localUrl}/community/api/${widget.community.pk}/post/create-flutter/';
+      final url = '${Config.baseUrl}${Config.communityDetailBase}${widget.community.pk}/post/create-flutter/';
 
       try {
         final response = await request.post(url, {
@@ -238,7 +238,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
 
   // 6. Hapus Post
   Future<void> deletePost(CookieRequest request, int postPk) async {
-    final url = '${Config.localUrl}/community/api/post/$postPk/delete-flutter/';
+    final url = '${Config.baseUrl}${Config.postOperationBase}$postPk/delete-flutter/';
     
     try {
       final response = await request.post(url, {});
@@ -262,7 +262,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
   Future<void> createComment(CookieRequest request, int postPk, String content) async {
     if (content.trim().isEmpty) return;
     
-    final url = '${Config.localUrl}/community/api/post/$postPk/comment-flutter/';
+    final url = '${Config.baseUrl}${Config.postOperationBase}$postPk/comment-flutter/';
     
     try {
       final response = await request.post(url, {'content': content});
@@ -294,7 +294,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
     String firstName = currentUsername.split(' ').first;
 
     // URL Handling for Image
-    String baseUrl = Config.localUrl; 
+    String baseUrl = Config.baseUrl; 
     String fullImageUrl = "";
     if (widget.community.imageUrl.isNotEmpty) {
       if (widget.community.imageUrl.startsWith("http")) {
@@ -667,7 +667,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 12.0),
                                 child: Image.network(
-                                  post.imageUrl!.startsWith('http') ? post.imageUrl! : '${Config.localUrl}${post.imageUrl}',
+                                  post.imageUrl!.startsWith('http') ? post.imageUrl! : '${Config.baseUrl}${post.imageUrl}',
                                   fit: BoxFit.cover,
                                 ),
                               ),

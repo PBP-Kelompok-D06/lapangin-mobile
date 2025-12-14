@@ -22,6 +22,12 @@ class Config {
   static const String myBookingsEndpoint = "/booking/api/my-bookings/";
   static const String cancelBookingEndpoint = "/booking/api/booking/";
   
+  // Community endpoints
+  static const String communityListEndpoint = "/community/api/communities/";
+  static const String communityDetailBase = "/community/api/"; 
+  static const String communityPostsBase = "/community/api/community/";
+  static const String postOperationBase = "/community/api/post/";
+  
   // Legacy support for existing code referencing localUrl directly
   // It is recommended to use baseUrl instead
   static String get localUrl => baseUrl;
