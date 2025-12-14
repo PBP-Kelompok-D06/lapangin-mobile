@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:lapangin_mobile/community/models/community_models.dart';
+import 'package:lapangin_mobile/config.dart';
 
 class CommunityCard extends StatelessWidget {
   final Community community;
@@ -15,9 +16,8 @@ class CommunityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // GANTI URL INI SESUAI IP SERVER KAMU (sama seperti di community_page.dart)
-    // Gunakan 10.0.2.2 untuk Android Emulator, atau localhost untuk Web/iOS Simulator
-    String baseUrl = "http://127.0.0.1:8000"; 
+    // Base URL taken from Config
+    String baseUrl = Config.baseUrl; 
     
     // Logika untuk URL Gambar: Jika URL dari API tidak kosong, gabungkan dengan baseUrl
     // (Karena Django biasanya hanya mengirim 'media/community_images/...', bukan full URL)

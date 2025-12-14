@@ -1,6 +1,12 @@
 // lapangin/lib/config.dart
 class Config {
-  static const String baseUrl = "https://zibeon-jonriano-lapangin2.pbp.cs.ui.ac.id";
+  // Set to true for Development (Local), false for Production (PWS)
+  static const bool isDev = true; 
+  
+  static const String _pwsUrl = "https://zibeon-jonriano-lapangin2.pbp.cs.ui.ac.id";
+  static const String _localUrl = "http://localhost:8000"; // Use http://10.0.2.2:8000 for Android emulator
+
+  static String get baseUrl => isDev ? _localUrl : _pwsUrl;
   
   // Authbooking endpoints
   static const String loginEndpoint = "/accounts/login-flutter/";
@@ -16,7 +22,7 @@ class Config {
   static const String myBookingsEndpoint = "/booking/api/my-bookings/";
   static const String cancelBookingEndpoint = "/booking/api/booking/";
   
-  // Untuk development
-  // static const String localUrl = "http://10.0.2.2:8000"; // Android emulator
-  static const String localUrl = "http://localhost:8000"; // Chrome
+  // Legacy support for existing code referencing localUrl directly
+  // It is recommended to use baseUrl instead
+  static String get localUrl => baseUrl;
 }

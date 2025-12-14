@@ -81,11 +81,8 @@ class _CommunityPageState extends State<CommunityPage> {
 
   // Fungsi fetch data
   Future<List<Community>> fetchCommunities(CookieRequest request) async {
-    // GANTI URL SESUAI IP KOMPUTER MU (JANGAN LOCALHOST JIKA PAKAI EMULATOR)
-    // Contoh Android Emulator: http://10.0.2.2:8000/community/api/communities/
-    // GANTI URL SESUAI IP KOMPUTER MU (JANGAN LOCALHOST JIKA PAKAI EMULATOR)
-    // Contoh Android Emulator: http://10.0.2.2:8000/community/api/communities/
-    final response = await request.get('${Config.localUrl}/community/api/communities/');
+    // URL already configured in Config class
+    final response = await request.get('${Config.baseUrl}/community/api/communities/');
 
     List<Community> listCommunity = [];
     for (var d in response) {

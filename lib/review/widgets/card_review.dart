@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:lapangin_mobile/review/models/review_entry.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:lapangin_mobile/config.dart';
 
 class ReviewCard extends StatelessWidget {
   final ReviewEntry review;
@@ -94,7 +95,7 @@ class ReviewCard extends StatelessWidget {
 
   Future<Map<String, dynamic>> _editReview(BuildContext context, String content, int rating) async {
     final request = context.read<CookieRequest>();
-    final url = "http://localhost:8000/review/edit/${review.id}/";
+    final url = "${Config.baseUrl}/review/edit/${review.id}/";
 
     print("Sending POST to: $url");
     final response = await request.post(url, {
@@ -143,7 +144,7 @@ class ReviewCard extends StatelessWidget {
 
   Future<Map<String, dynamic>> _deleteReview(BuildContext context) async {
     final request = context.read<CookieRequest>();
-    final url = "http://localhost:8000/review/delete/${review.id}/";
+    final url = "${Config.baseUrl}/review/delete/${review.id}/";
 
     print("Sending POST to: $url");
     final response = await request.post(url, {});

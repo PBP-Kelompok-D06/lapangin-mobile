@@ -33,7 +33,7 @@ class _ReviewPage extends State<ReviewPage> {
   void initState() {
     super.initState();
 
-    apiUrl = "${Config.localUrl}/review/api/${widget.fieldId}";
+    apiUrl = "${Config.baseUrl}/review/api/${widget.fieldId}";
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -328,7 +328,7 @@ class _ReviewPage extends State<ReviewPage> {
                         onSubmit: (rating, content) async {
                           try {
                             final response = await request.post(
-                              "http://localhost:8000/review/api/add/${widget.fieldId}/",
+                              "${Config.baseUrl}/review/api/add/${widget.fieldId}/",
                               jsonEncode({
                                 "rating": rating.toString(),
                                 "content": content,
