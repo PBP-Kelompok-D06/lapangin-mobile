@@ -103,7 +103,7 @@ class LeftDrawer extends StatelessWidget {
             leading: const Icon(Icons.calendar_today),
             title: const Text('My Booking'),
             onTap: () {
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const MyBookingsScreen(),
@@ -118,7 +118,7 @@ class LeftDrawer extends StatelessWidget {
               final request = context.read<CookieRequest>();
               try {
                 final response = await request.logout(
-                  "${Config.localUrl}${Config.logoutEndpoint}",
+                  "${Config.baseUrl}${Config.logoutEndpoint}",
                 );
                 
                 if (context.mounted) {

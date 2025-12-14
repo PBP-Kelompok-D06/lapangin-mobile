@@ -1,12 +1,10 @@
 // lapangin/lib/authbooking/screens/login.dart
 import 'package:flutter/material.dart';
-import 'package:lapangin_mobile/review/screens/review_lapangan.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:lapangin_mobile/authbooking/screens/register.dart';
 import 'package:lapangin_mobile/landing/screens/menu.dart';
 import 'package:lapangin_mobile/config.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -234,8 +232,8 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await request.login(
-        "${Config.localUrl}${Config.loginEndpoint}",
-        // "${Config.baseUrl}${Config.loginEndpoint}", // Uncomment untuk production
+        // "${Config.localUrl}${Config.loginEndpoint}",
+        "${Config.baseUrl}${Config.loginEndpoint}", // Uncomment untuk production
         {
           'username': _usernameController.text,
           'password': _passwordController.text,

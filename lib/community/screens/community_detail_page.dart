@@ -310,7 +310,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
         title: Row(
@@ -354,7 +354,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
               width: double.infinity,
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(8),
                 image: fullImageUrl.isNotEmpty 
                   ? DecorationImage(image: NetworkImage(fullImageUrl), fit: BoxFit.cover)
                   : null,
@@ -364,7 +364,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
                 children: [
                    Container(
                      decoration: BoxDecoration(
-                       borderRadius: BorderRadius.circular(16),
+                       borderRadius: BorderRadius.circular(8),
                        gradient: LinearGradient(
                          begin: Alignment.topCenter,
                          end: Alignment.bottomCenter,

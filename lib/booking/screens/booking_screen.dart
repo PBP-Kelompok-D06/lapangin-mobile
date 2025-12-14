@@ -352,7 +352,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                   child: Image.network(
                                     (_lapangan?.fotoUtama?.isNotEmpty ?? false)
-                                        ? "${Config.localUrl}/booking/proxy-image/?url=${Uri.encodeComponent(_lapangan!.fotoUtama!)}"
+                                        ? "${Config.baseUrl}/booking/proxy-image/?url=${Uri.encodeComponent(_lapangan!.fotoUtama!)}"
                                         : "",
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {

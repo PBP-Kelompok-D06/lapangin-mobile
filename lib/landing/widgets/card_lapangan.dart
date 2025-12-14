@@ -41,7 +41,7 @@ class LapanganEntryCard extends StatelessWidget {
                 aspectRatio: 16 / 9,
                 child: lapangan.image.isNotEmpty
                     ? Image.network(
-                      "${Config.localUrl}/proxy-image/?url=${Uri.encodeComponent(lapangan.image)}",
+                      "${Config.baseUrl}/proxy-image/?url=${Uri.encodeComponent(lapangan.image)}",
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(

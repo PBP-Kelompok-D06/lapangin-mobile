@@ -153,7 +153,7 @@ class _CommunityPageState extends State<CommunityPage> {
                       height: 180,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(8),
                         image: const DecorationImage(
                           image: NetworkImage("https://images.unsplash.com/photo-1517649763962-0c623066013b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"),
                           fit: BoxFit.cover,
@@ -161,7 +161,7 @@ class _CommunityPageState extends State<CommunityPage> {
                       ),
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(8),
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
@@ -334,7 +334,7 @@ class _CommunityPageState extends State<CommunityPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(color: Colors.black, width: 1.2),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: DropdownButtonHideUnderline(
           child: DropdownButton<String>(

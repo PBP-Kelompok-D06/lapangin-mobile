@@ -1,6 +1,5 @@
-import 'dart:convert';
+// lib/gallery/screens/gallery_detail_screen.dart
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:lapangin_mobile/review/screens/review_lapangan.dart';
 import 'package:lapangin_mobile/review/widgets/card_review.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
@@ -36,7 +35,7 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
   }
 
   Future<LapanganDetail> fetchLapanganDetail(int id) async {
-    final uri = Uri.parse('${Config.localUrl}/gallery/api/lapangan/$id/');
+    final uri = Uri.parse('${Config.baseUrl}/gallery/api/lapangan/$id/');
     final request = context.read<CookieRequest>();
     final res = await request.get(uri.toString());
     print("RESPONSE: $res");
@@ -142,7 +141,7 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                       borderRadius: BorderRadius.circular(8),
                       child: _currentHero != null
                           ? Image.network(
-                              "${Config.localUrl}/proxy-image/?url=${Uri.encodeComponent(Config.localUrl + "/" + _currentHero!)}",
+                              "${Config.baseUrl}/proxy-image/?url=${Uri.encodeComponent(Config.baseUrl + "/" + _currentHero!)}",
                               fit: BoxFit.cover,
                               width: double.infinity,
                               loadingBuilder: (ctx, child, progress) {
@@ -227,7 +226,7 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
                                     child: Image.network(
-                                      "${Config.localUrl}/proxy-image/?url=${Uri.encodeComponent(Config.localUrl + "/" + img!)}",
+                                      "${Config.baseUrl}/proxy-image/?url=${Uri.encodeComponent(Config.baseUrl + "/" + img)}",
                                       fit: BoxFit.cover,
                                       loadingBuilder: (ctx, child, progress) {
                                         if (progress == null) return child;

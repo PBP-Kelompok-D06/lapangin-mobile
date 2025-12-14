@@ -7,7 +7,6 @@ import 'package:lapangin_mobile/review/widgets/statistik.dart';
 import 'package:lapangin_mobile/review/models/review_entry.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:lapangin_mobile/landing/widgets/left_drawer.dart';
 import 'package:lapangin_mobile/config.dart';
 import 'package:lapangin_mobile/review/widgets/chip.dart';
 

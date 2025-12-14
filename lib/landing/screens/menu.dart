@@ -5,7 +5,6 @@ import 'package:lapangin_mobile/landing/widgets/card_lapangan.dart';
 import 'package:lapangin_mobile/landing/models/lapangan_entry.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:lapangin_mobile/booking/screens/booking_screen.dart';
 import 'package:lapangin_mobile/config.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -21,7 +20,6 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isLoading = true;
   String _errorMessage = '';
   final String apiUrl = "${Config.baseUrl}/api/booking/";
-  final String _baseServerUrl = Config.baseUrl;
   String _userName = "User";
   final TextEditingController _searchController = TextEditingController();
   FieldType? _selectedType;
