@@ -8,6 +8,10 @@ import 'package:lapangin_mobile/community/models/community_models.dart';
 import 'package:lapangin_mobile/authbooking/screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lapangin_mobile/config.dart';
+import 'package:intl/intl.dart';
+import 'dart:io';
+import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
 
 class CommunityDetailPage extends StatefulWidget {
   final Community community;
@@ -24,6 +28,9 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
   bool isJoined = false;
   late int currentMemberCount; // Variabel lokal untuk jumlah member (biar bisa update realtime)
   String currentUsername = "Guest";
+  
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
 
   // Controllers
   final TextEditingController _postController = TextEditingController();
@@ -86,6 +93,15 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
       initials += parts.last[0].toUpperCase();
     }
     return initials;
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
   }
 
   // --- FUNGSI API CALLS ---
@@ -214,12 +230,24 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
       final url = '${Config.baseUrl}${Config.communityDetailBase}${widget.community.pk}/post/create-flutter/';
 
       try {
+        String? base64Image;
+        if (_selectedImage != null) {
+          final bytes = await _selectedImage!.readAsBytes();
+          base64Image = base64Encode(bytes);
+        }
+
         final response = await request.post(url, {
             'content': _postController.text,
+            'image': base64Image, // Kirim null jika tidak ada gambar
         });
+
+        if (!mounted) return;
 
         if (response['status'] == 'success') {
            _postController.clear();
+           setState(() {
+             _selectedImage = null; // Reset image setelah berhasil upload
+           }); 
            setState(() {}); // Refresh list post
            ScaffoldMessenger.of(context).showSnackBar(
              const SnackBar(content: Text("Post berhasil dibuat!"), backgroundColor: Colors.green),
@@ -230,6 +258,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
            );
         }
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
            SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
         );
@@ -432,7 +461,17 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
                       Expanded(
                         child: Column(
                           children: [
-                             _buildInfoRow(Icons.calendar_today_outlined, "Dibuat : -", Colors.blue),
+                             _buildInfoRow(Icons.calendar_today_outlined, 
+                                "Dibuat : ${() {
+                                    try {
+                                      // Asumsi format dari backend "yyyy-MM-dd"
+                                      DateTime date = DateTime.parse(widget.community.dateAdded);
+                                      return DateFormat('dd MMM yyyy').format(date);
+                                    } catch (e) {
+                                      return widget.community.dateAdded;
+                                    }
+                                }()}", 
+                                Colors.blue),
                              const SizedBox(height: 12),
                              _buildInfoRow(Icons.phone_outlined, widget.community.contactPhone, Colors.red),
                           ],
@@ -515,15 +554,56 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
                          ),
                       ),
                       const SizedBox(height: 12),
+                      // PREVIEW IMAGE
+                      if (_selectedImage != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  _selectedImage!,
+                                  height: 150,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedImage = null;
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.close, color: Colors.white, size: 16),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                               const Icon(Icons.image_outlined, color: Color(0xFF8B9E6D)),
-                               const SizedBox(width: 4),
-                               const Text("Upload Foto", style: TextStyle(color: Color(0xFF8B9E6D), fontWeight: FontWeight.bold, fontSize: 12)),
-                            ],
+                          InkWell(
+                            onTap: _pickImage,
+                            child: Row(
+                              children: [
+                                 const Icon(Icons.image_outlined, color: Color(0xFF8B9E6D)),
+                                 const SizedBox(width: 4),
+                                 const Text("Upload Foto", style: TextStyle(color: Color(0xFF8B9E6D), fontWeight: FontWeight.bold, fontSize: 12)),
+                              ],
+                            ),
                           ),
                           ElevatedButton(
                             onPressed: () => createPost(request),
@@ -531,7 +611,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
                                backgroundColor: const Color(0xFF8B9E6D),
                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                              ),
-                            child: const Text("Kirim", style: TextStyle(color: Colors.white)),
+                            child: const Text("Post", style: TextStyle(color: Colors.white)),
                           )
                         ],
                       )
@@ -674,7 +754,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
                            const SizedBox(height: 12),
                            
                            // --- LIST KOMENTAR ---
-                           if (post.comments.isNotEmpty) ...[
+                          if (post.comments.isNotEmpty) ...[
                               const Divider(),
                               ListView.builder(
                                 shrinkWrap: true,

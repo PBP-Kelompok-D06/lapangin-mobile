@@ -13,6 +13,7 @@ class Community {
   final String contactPerson;
   final String contactPhone;
   final String createdBy;
+  final String dateAdded; // TAMBAHAN
 
   Community({
     required this.pk,
@@ -26,6 +27,7 @@ class Community {
     required this.contactPerson,
     required this.contactPhone,
     required this.createdBy,
+    required this.dateAdded, // TAMBAHAN
   });
 
   factory Community.fromJson(Map<String, dynamic> json) {
@@ -39,8 +41,7 @@ class Community {
       maxMember: json['max_member'] ?? 0,
       imageUrl: json['image_url'] ?? '',
       contactPerson: json['contact_person'] ?? '',
-      contactPhone: json['contact_phone'] ?? '',
-      createdBy: json['created_by'] ?? '',
+      dateAdded: json['date_added'] ?? json['created_at'] ?? '2024', // Fallback dan support kedua key
     );
   }
 }
