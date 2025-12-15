@@ -76,7 +76,7 @@ class _CommunityPageState extends State<CommunityPage> {
   String _selectedLocation = "Filter Lokasi";
   
   // Options for filters
-  final List<String> _categories = ["Jenis Olahraga", "Futsal", "Bulutangkis", "Basket", "Renang"];
+  final List<String> _categories = ["Jenis Olahraga", "Futsal", "Bulutangkis", "Basket"];
   final List<String> _locations = ["Filter Lokasi", "Depok", "Jakarta", "Bogor", "Tangerang", "Bekasi"];
 
   // Fungsi fetch data
@@ -155,7 +155,7 @@ class _CommunityPageState extends State<CommunityPage> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
                         image: const DecorationImage(
-                          image: NetworkImage("https://images.unsplash.com/photo-1517649763962-0c623066013b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"),
+                          image: NetworkImage("https://static.promediateknologi.id/crop/0x0:0x0/750x500/webp/photo/p1/163/2025/02/09/IMG-20250209-WA0001-1693038081.jpg"),
                           fit: BoxFit.cover,
                         ),
                       ),

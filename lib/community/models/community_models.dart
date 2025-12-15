@@ -41,6 +41,8 @@ class Community {
       maxMember: json['max_member'] ?? 0,
       imageUrl: json['image_url'] ?? '',
       contactPerson: json['contact_person'] ?? '',
+      contactPhone: json['contact_phone'] ?? '',
+      createdBy: json['created_by'] ?? '',
       dateAdded: json['date_added'] ?? json['created_at'] ?? '2024', // Fallback dan support kedua key
     );
   }

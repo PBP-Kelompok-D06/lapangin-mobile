@@ -13,6 +13,8 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 class CommunityDetailPage extends StatefulWidget {
   final Community community;
 
@@ -29,7 +31,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
   late int currentMemberCount; // Variabel lokal untuk jumlah member (biar bisa update realtime)
   String currentUsername = "Guest";
   
-  File? _selectedImage;
+  XFile? _selectedImage; // Change to XFile for web support
   final ImagePicker _picker = ImagePicker();
 
   // Controllers
@@ -99,7 +101,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
-        _selectedImage = File(pickedFile.path);
+        _selectedImage = pickedFile;
       });
     }
   }
@@ -141,6 +143,8 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
       
       if (postsData != null) {
         for (var d in postsData) {
+          // DEBUG LOG
+          print("RAW POST DATA: $d"); 
           if (d != null) {
             listPosts.add(CommunityPost.fromJson(d));
           }
@@ -234,12 +238,15 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
         if (_selectedImage != null) {
           final bytes = await _selectedImage!.readAsBytes();
           base64Image = base64Encode(bytes);
+          print("Sending image with length: ${base64Image.length}"); // DEBUG LOG
         }
 
         final response = await request.post(url, {
             'content': _postController.text,
             'image': base64Image, // Kirim null jika tidak ada gambar
         });
+        
+        print("Create Post Response: $response"); // DEBUG LOG
 
         if (!mounted) return;
 
@@ -454,7 +461,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
                             // GUNAKAN currentMemberCount AGAR UPDATE REALTIME
                             _buildInfoRow(Icons.people_outline, "$currentMemberCount/${widget.community.maxMember} Anggota", Colors.green),
                             const SizedBox(height: 12),
-                            _buildInfoRow(Icons.person_outline, widget.community.contactPerson, Colors.blue),
+                            _buildInfoRow(Icons.person_outline, "Contact: ${widget.community.contactPerson}", Colors.purple),
                           ],
                         ),
                       ),
@@ -547,7 +554,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
                          controller: _postController,
                          maxLines: 4,
                          decoration: InputDecoration(
-                           hintText: "Tulis sesuatu...",
+                           hintText: "Bagikan sesuatu dengan komunitas...",
                            hintStyle: TextStyle(color: Colors.grey[400]),
                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
@@ -562,12 +569,19 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
                             children: [
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: Image.file(
-                                  _selectedImage!,
-                                  height: 150,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                ),
+                                child: kIsWeb 
+                                  ? Image.network(
+                                      _selectedImage!.path,
+                                      height: 150,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Image.file(
+                                      File(_selectedImage!.path),
+                                      height: 150,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                    ),
                               ),
                               Positioned(
                                 top: 4,
