@@ -1,7 +1,12 @@
 // lapangin/lib/authbooking/screens/login.dart
 import 'package:flutter/material.dart';
+import 'package:lapangin_mobile/review/screens/review_lapangan.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:lapangin_mobile/authbooking/screens/register.dart';
+import 'package:lapangin_mobile/landing/screens/menu.dart';
+import 'package:lapangin_mobile/config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lapangin/authbooking/screens/register.dart';
 import 'package:lapangin/landing/screens/menu.dart';
 // import 'package:lapangin/landing/screens/menu_admin.dart'; // TODO: Import halaman admin setelah dibuat
@@ -20,6 +25,8 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _obscurePassword = true;
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -231,6 +238,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await request.login(
+        "${Config.localUrl}${Config.loginEndpoint}",
         "${Config.localUrl}${Config.loginEndpoint}",
         // "${Config.baseUrl}${Config.loginEndpoint}", // Uncomment untuk production
         {
