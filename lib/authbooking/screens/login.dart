@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:lapangin_mobile/authbooking/screens/register.dart';
 import 'package:lapangin_mobile/landing/screens/menu.dart';
 import 'package:lapangin_mobile/config.dart';
+import 'package:lapangin_mobile/admin-dashboard/screens/admin_dashboard_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -298,16 +299,12 @@ class _LoginPageState extends State<LoginPage> {
       );
     } else if (role.toUpperCase() == 'PEMILIK') {
       // Navigate ke halaman admin/pemilik
-      print("✅ Navigate to MyHomePageAdmin (PEMILIK)");
+      print("✅ Navigate to AdminDashboardPage (PEMILIK)");
       
-      // TODO: Ganti ini dengan halaman admin yang sudah dibuat
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(builder: (context) => MyHomePageAdmin()),
-      // );
-      
-      // SEMENTARA: Tampilkan dialog placeholder
-      _showAdminPagePlaceholder(username);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => AdminDashboardPage(username: username)),
+      );
     } else {
       // Fallback untuk role yang tidak dikenali
       print("⚠️ Unknown role: $role, navigate ke MyHomePage");
@@ -318,47 +315,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // TODO: Hapus fungsi ini setelah MyHomePageAdmin dibuat
-  void _showAdminPagePlaceholder(String username) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text(
-          "Admin Page",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Welcome, $username!"),
-            const SizedBox(height: 8),
-            const Text("Role: PEMILIK (Admin)"),
-            const SizedBox(height: 16),
-            const Text(
-              "Halaman admin belum tersedia.\nSementara akan diarahkan ke halaman user.",
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-          ],
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => MyHomePage()),
-              );
-            },
-            child: const Text("OK"),
-          )
-        ],
-      ),
-    );
-  }
 
   void _showErrorDialog(String message) {
     showDialog(
