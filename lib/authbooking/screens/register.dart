@@ -1,9 +1,9 @@
-// lib/authbooking/screens/register.dart - FIXED VERSION
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:lapangin_mobile/authbooking/screens/login.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+
+import 'package:lapangin_mobile/authbooking/screens/login.dart';
 import 'package:lapangin_mobile/config.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -14,454 +14,56 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final _formKey = GlobalKey<FormState>();
+
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _nomorWhatsappController = TextEditingController();
   final _nomorRekeningController = TextEditingController();
 
-  final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  String _selectedRole = 'PENYEWA';
-
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
 
-  final List<Map<String, String>> _roles = [
-    {'value': 'PENYEWA', 'label': 'Penyewa Lapangan'},
-    {'value': 'PEMILIK', 'label': 'Pemilik Lapangan'},
-  ];
+  String _selectedRole = 'PENYEWA';
 
-  String? _validateWhatsApp(String? value, String role) {
-    if (role == 'PEMILIK') {
-      if (value == null || value.isEmpty) {
-        return 'Nomor WhatsApp wajib untuk Pemilik Lapangan';
-      }
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _nomorWhatsappController.dispose();
+    _nomorRekeningController.dispose();
+    super.dispose();
+  }
 
-      String cleanedValue = value.trim();
-      if (cleanedValue.startsWith('0')) {
-        cleanedValue = '+62' + cleanedValue.substring(1);
-      } else if (!cleanedValue.startsWith('+62')) {
-        cleanedValue = '+62' + cleanedValue;
-      }
+  String? _validateWhatsApp(String? value) {
+    if (_selectedRole != 'PEMILIK') return null;
 
-      final digitsOnly = cleanedValue.substring(1).replaceAll('+', '');
-      if (!RegExp(r'^[0-9]+$').hasMatch(digitsOnly)) {
-        return 'Hanya angka yang diperbolehkan setelah tanda +';
-      }
+    if (value == null || value.isEmpty) {
+      return 'Nomor WhatsApp wajib diisi';
+    }
 
-      if (cleanedValue.length < 10 || cleanedValue.length > 15) {
-        return 'Nomor WhatsApp harus 10-15 digit';
-      }
+    String v = value.trim();
+    if (v.startsWith('0')) v = '+62${v.substring(1)}';
+    if (!v.startsWith('+62')) v = '+62$v';
+
+    if (!RegExp(r'^\+62[0-9]{8,13}$').hasMatch(v)) {
+      return 'Format WhatsApp tidak valid';
     }
 
     return null;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    const Color primaryGreen = Color(0xFFC4DA6B);
-    const Color darkButton = Color(0xFF2F2F2F);
-    const Color headerText = Color(0xFF333333);
-    const double cardMaxWidth = 520;
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
-            child: Column(
-              children: [
-                // Header
-                const Text(
-                  'Register',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: headerText,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text.rich(
-                  TextSpan(
-                    text: 'Create your ',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black54,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: 'Lapang.in',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: primaryGreen,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const TextSpan(
-                        text: ' account',
-                      ),
-                    ],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(height: 28),
-
-                // Form Card
-                ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: cardMaxWidth,
-                  ),
-                  child: Card(
-                    elevation: 8,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14.0),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 22.0,
-                        vertical: 20.0,
-                      ),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            // Username Field
-                            const Text(
-                              'Username *',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF6F7C00),
-                              ),
-                            ),
-                            const SizedBox(height: 8.0),
-                            TextFormField(
-                              controller: _usernameController,
-                              decoration: InputDecoration(
-                                hintText: 'Enter your username here',
-                                prefixIcon: const Icon(Icons.person),
-                                filled: true,
-                                fillColor: Colors.grey[50],
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 14),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  borderSide: BorderSide.none,
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Username is required';
-                                }
-                                if (value.length < 3) {
-                                  return 'Username must be at least 3 characters';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16.0),
-
-                            // Password Field
-                            const Text(
-                              'Password *',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF6F7C00),
-                              ),
-                            ),
-                            const SizedBox(height: 8.0),
-                            TextFormField(
-                              controller: _passwordController,
-                              obscureText: _obscurePassword,
-                              decoration: InputDecoration(
-                                hintText: 'Enter your password (minimum 8 characters)',
-                                prefixIcon: const Icon(Icons.lock),
-                                filled: true,
-                                fillColor: Colors.grey[50],
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 14),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  borderSide: BorderSide.none,
-                                ),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility_off
-                                        : Icons.visibility,
-                                    color: Colors.grey,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Password is required';
-                                }
-                                if (value.length < 8) {
-                                  return 'Password must be at least 8 characters';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16.0),
-
-                            // Confirm Password Field
-                            const Text(
-                              'Password Confirmation *',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF6F7C00),
-                              ),
-                            ),
-                            const SizedBox(height: 8.0),
-                            TextFormField(
-                              controller: _confirmPasswordController,
-                              obscureText: _obscureConfirm,
-                              decoration: InputDecoration(
-                                hintText: 'Enter your password again',
-                                prefixIcon: const Icon(Icons.lock_outline),
-                                filled: true,
-                                fillColor: Colors.grey[50],
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 14),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  borderSide: BorderSide.none,
-                                ),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscureConfirm
-                                        ? Icons.visibility_off
-                                        : Icons.visibility,
-                                    color: Colors.grey,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscureConfirm = !_obscureConfirm;
-                                    });
-                                  },
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Password confirmation is required';
-                                }
-                                if (value != _passwordController.text) {
-                                  return 'Passwords do not match';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 18.0),
-
-                            // Role Selection
-                            const Text(
-                              'Role *',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF6F7C00),
-                              ),
-                            ),
-                            const SizedBox(height: 8.0),
-                            DropdownButtonFormField<String>(
-                              value: _selectedRole,
-                              decoration: InputDecoration(
-                                prefixIcon: const Icon(Icons.people),
-                                filled: true,
-                                fillColor: Colors.grey[50],
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 16),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  borderSide: BorderSide.none,
-                                ),
-                              ),
-                              items: _roles.map((role) {
-                                return DropdownMenuItem<String>(
-                                  value: role['value'],
-                                  child: Text(role['label']!),
-                                );
-                              }).toList(),
-                              onChanged: _isLoading
-                                  ? null
-                                  : (String? newValue) {
-                                      setState(() {
-                                        _selectedRole = newValue!;
-                                        if (_selectedRole == 'PENYEWA') {
-                                          _nomorWhatsappController.clear();
-                                          _nomorRekeningController.clear();
-                                        }
-                                        _formKey.currentState?.validate();
-                                      });
-                                    },
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please select a role';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16.0),
-
-                            // Nomor WhatsApp & Rekening - hanya untuk PEMILIK
-                            if (_selectedRole == 'PEMILIK') ...[
-                              const Text(
-                                'Account Number *',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF6F7C00),
-                                ),
-                              ),
-                              const SizedBox(height: 8.0),
-                              TextFormField(
-                                controller: _nomorRekeningController,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  hintText: 'Example: 1234567890 - a.n. Budi Santoso',
-                                  prefixIcon: const Icon(Icons.credit_card),
-                                  filled: true,
-                                  fillColor: Colors.grey[50],
-                                  contentPadding:
-                                      const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                                validator: (value) {
-                                  if (_selectedRole == 'PEMILIK' &&
-                                      (value == null || value.isEmpty)) {
-                                    return 'Account number is required for Field Owners';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 16.0),
-                              const Text(
-                                'WhatsApp Number *',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF6F7C00),
-                                ),
-                              ),
-                              const SizedBox(height: 8.0),
-                              TextFormField(
-                                controller: _nomorWhatsappController,
-                                keyboardType: TextInputType.phone,
-                                decoration: InputDecoration(
-                                  hintText:
-                                      'Example: 081234567890 or +6281234567890',
-                                  prefixIcon: const Icon(Icons.phone),
-                                  filled: true,
-                                  fillColor: Colors.grey[50],
-                                  contentPadding:
-                                      const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                                validator: (value) =>
-                                    _validateWhatsApp(value, _selectedRole),
-                              ),
-                              const SizedBox(height: 16.0),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Register Button
-                _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : SizedBox(
-                        width: double.infinity,
-                        height: 54,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
-                              await _registerUser();
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryGreen,
-                            foregroundColor: Colors.black87,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            "Register",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                const SizedBox(height: 16),
-
-                // Login Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LoginPage()),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: darkButton,
-                      foregroundColor: primaryGreen,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      "Login",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _registerUser() async {
-    if (!mounted) return;
-    final request = context.read<CookieRequest>();
+    if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    final request = context.read<CookieRequest>();
+    setState(() => _isLoading = true);
 
     try {
-      final Map<String, dynamic> requestData = {
+      final data = {
         "username": _usernameController.text.trim(),
         "password1": _passwordController.text,
         "password2": _confirmPasswordController.text,
@@ -469,94 +71,321 @@ class _RegisterPageState extends State<RegisterPage> {
       };
 
       if (_selectedRole == 'PEMILIK') {
-        String whatsappNumber = _nomorWhatsappController.text.trim();
-
-        if (whatsappNumber.isNotEmpty) {
-          whatsappNumber = whatsappNumber.replaceAll(RegExp(r'[^\d+]'), '');
-
-          if (whatsappNumber.startsWith('0')) {
-            whatsappNumber = '+62${whatsappNumber.substring(1)}';
-          } else if (whatsappNumber.startsWith('62')) {
-            whatsappNumber = '+$whatsappNumber';
-          } else if (!whatsappNumber.startsWith('+62')) {
-            whatsappNumber = '+62$whatsappNumber';
-          }
-        }
-
-        requestData["nomor_whatsapp"] = whatsappNumber;
-        requestData["nomor_rekening"] = _nomorRekeningController.text.trim();
+        data.addAll({
+          "nomor_whatsapp": _nomorWhatsappController.text.trim(),
+          "nomor_rekening": _nomorRekeningController.text.trim(),
+        });
       }
 
       final response = await request.postJson(
         Config.getUrl(Config.registerEndpoint),
-        jsonEncode(requestData),
+        jsonEncode(data),
       );
 
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
+
+      final success = response['status'] == true ||
+          response['status'].toString().toLowerCase() == 'success';
 
       if (!mounted) return;
 
-      final status = response['status'];
-      bool isSuccess = false;
-
-      if (status is bool) {
-        isSuccess = status == true;
-      } else if (status is String) {
-        isSuccess = status.toLowerCase() == 'true' ||
-            status.toLowerCase() == 'success';
-      }
-
-      if (isSuccess) {
+      if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response['message'] ?? "Registration successful!"),
+          const SnackBar(
+            content: Text("Registrasi berhasil"),
             backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
           ),
         );
 
-        await Future.delayed(const Duration(milliseconds: 2000));
+        await Future.delayed(const Duration(seconds: 2));
 
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginPage()),
-          );
-        }
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+        );
       } else {
-        String errorMessage = response['message'] ?? 'Registration failed!';
-
-        if (response['errors'] != null) {
-          final errors = response['errors'] as Map<String, dynamic>;
-          if (errors.isNotEmpty) {
-            errorMessage = errors.values.first.toString();
-          }
-        }
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(errorMessage),
+            content: Text(response['message'] ?? "Registrasi gagal"),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
           ),
         );
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Connection error: ${e.toString()}'),
+            content: Text("Connection error: $e"),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
           ),
         );
       }
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            children: [
+              const SizedBox(height: 60),
+
+              /// ===== HEADER =====
+              Column(
+                children: const [
+                  Text(
+                    "Register",
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF383838),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    "Create your Lapangin account",
+                    style: TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 48),
+
+              /// ===== FORM CARD =====
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.25),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      _buildInput(
+                        label: "Username",
+                        hint: "Enter your username here",
+                        controller: _usernameController,
+                        validator: (v) => v == null || v.length < 3
+                            ? "Minimal 3 karakter"
+                            : null,
+                      ),
+                      const SizedBox(height: 20),
+
+                      _buildInput(
+                        label: "Password",
+                        hint: "Enter your password here",
+                        controller: _passwordController,
+                        obscure: _obscurePassword,
+                        suffix: _passwordToggle(() {
+                          setState(() => _obscurePassword = !_obscurePassword);
+                        }),
+                        validator: (v) => v == null || v.length < 8
+                            ? "Minimal 8 karakter"
+                            : null,
+                      ),
+                      const SizedBox(height: 20),
+
+                      _buildInput(
+                        label: "Confirm Password",
+                        hint: "Enter your password confirmation here",
+                        controller: _confirmPasswordController,
+                        obscure: _obscureConfirm,
+                        suffix: _passwordToggle(() {
+                          setState(() => _obscureConfirm = !_obscureConfirm);
+                        }),
+                        validator: (v) => v != _passwordController.text
+                            ? "Password tidak sama"
+                            : null,
+                      ),
+                      const SizedBox(height: 20),
+
+                      _buildDropdown(),
+
+                      if (_selectedRole == 'PEMILIK') ...[
+                        const SizedBox(height: 20),
+                        _buildInput(
+                          label: "Account Number",
+                          hint: "Ex: 1234567890 - a.n Budi Santoso",
+                          controller: _nomorRekeningController,
+                          validator: (v) =>
+                              v == null || v.isEmpty ? "Wajib diisi" : null,
+                        ),
+                        const SizedBox(height: 20),
+                        _buildInput(
+                          label: "WhatsApp Number",
+                          hint: "Ex: +6281234567890",
+                          controller: _nomorWhatsappController,
+                          validator: _validateWhatsApp,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              /// ===== REGISTER BUTTON =====
+              _primaryButton("Register", _registerUser),
+
+              const SizedBox(height: 12),
+
+              /// ===== LOGIN BUTTON =====
+              _secondaryButton("Login", () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                );
+              }),
+
+              const SizedBox(height: 40),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// ===== INPUT FIELD =====
+  Widget _buildInput({
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+    bool obscure = false,
+    Widget? suffix,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF839556),
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: controller,
+          obscureText: obscure,
+          validator: validator,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+            suffixIcon: suffix,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Role",
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF839556),
+          ),
+        ),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          value: _selectedRole,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          items: const [
+            DropdownMenuItem(value: "PENYEWA", child: Text("Penyewa Lapangan")),
+            DropdownMenuItem(value: "PEMILIK", child: Text("Pemilik Lapangan")),
+          ],
+          onChanged: _isLoading
+              ? null
+              : (v) {
+                  setState(() {
+                    _selectedRole = v!;
+                    _formKey.currentState?.validate();
+                  });
+                },
+        ),
+      ],
+    );
+  }
+
+  Widget _primaryButton(String text, VoidCallback onTap) {
+    return SizedBox(
+      width: double.infinity,
+      height: 44,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFB8D279),
+        ),
+        child: _isLoading
+            ? const CircularProgressIndicator(strokeWidth: 2)
+            : Text(
+                text,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF4D5833),
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _secondaryButton(String text, VoidCallback onTap) {
+    return SizedBox(
+      width: double.infinity,
+      height: 44,
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF383838),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Color(0xFFCFE1A5),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _passwordToggle(VoidCallback onTap) {
+    return IconButton(
+      icon: Icon(
+        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+        size: 20,
+      ),
+      onPressed: onTap,
+    );
   }
 }
