@@ -141,7 +141,7 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                       borderRadius: BorderRadius.circular(8),
                       child: _currentHero != null
                           ? Image.network(
-                              "${Config.baseUrl}/proxy-image/?url=${Uri.encodeComponent(Config.baseUrl + "/" + _currentHero!)}",
+                            buildImageUrl(_currentHero!),
                               fit: BoxFit.cover,
                               width: double.infinity,
                               loadingBuilder: (ctx, child, progress) {
@@ -226,7 +226,7 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
                                     child: Image.network(
-                                      "${Config.baseUrl}/proxy-image/?url=${Uri.encodeComponent(Config.baseUrl + "/" + img)}",
+                                      buildImageUrl(img),
                                       fit: BoxFit.cover,
                                       loadingBuilder: (ctx, child, progress) {
                                         if (progress == null) return child;
@@ -465,4 +465,10 @@ class _GalleryDetailScreenState extends State<GalleryDetailScreen> {
       ),
     );
   }
+}
+String buildImageUrl(String img) {
+  final isFullUrl = img.startsWith("http://") || img.startsWith("https://");
+  final rawUrl = isFullUrl ? img : "${Config.baseUrl}/$img";
+
+  return "${Config.baseUrl}/proxy-image/?url=${Uri.encodeComponent(rawUrl)}";
 }

@@ -102,7 +102,10 @@ class _MyHomePageState extends State<MyHomePage> {
           final price = item['price'];
           final rating = item['rating'];
           final reviewCount = item['review_count'];
-          String imageUrl = item['image'] ?? "";
+          String imagePath = item['image'] ?? "";
+          String imageUrl = imagePath.isNotEmpty
+              ? "${Config.baseUrl}/$imagePath"
+              : "";
 
           if (id != null && name != null && typeString != null) {
             fetchedLapangans.add(LapanganEntry(
