@@ -1,11 +1,12 @@
 // lib/community/widgets/community_card.dart
 
 import 'package:flutter/material.dart';
-import 'package:lapangin_mobile/community/models/community_models.dart';
+import 'package:lapangin/community/models/community_models.dart';
+import 'package:lapangin/config.dart';
 
 class CommunityCard extends StatelessWidget {
   final Community community;
-  final VoidCallback? onTap; // Aksi saat kartu ditekan
+  final VoidCallback? onTap;
 
   const CommunityCard({
     Key? key,
@@ -15,12 +16,8 @@ class CommunityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // GANTI URL INI SESUAI IP SERVER KAMU (sama seperti di community_page.dart)
-    // Gunakan 10.0.2.2 untuk Android Emulator, atau localhost untuk Web/iOS Simulator
-    String baseUrl = "http://127.0.0.1:8000"; 
+    String baseUrl = Config.localUrl; 
     
-    // Logika untuk URL Gambar: Jika URL dari API tidak kosong, gabungkan dengan baseUrl
-    // (Karena Django biasanya hanya mengirim 'media/community_images/...', bukan full URL)
     String fullImageUrl = "";
     if (community.imageUrl.isNotEmpty) {
       if (community.imageUrl.startsWith("http")) {
@@ -53,7 +50,7 @@ class CommunityCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           child: Row(
             children: [
-              // Image Section (Left 1/3)
+              // Image Section
               Container(
                 width: 130,
                 decoration: BoxDecoration(
@@ -81,14 +78,14 @@ class CommunityCard extends StatelessWidget {
                   : null,
               ),
               
-              // Content Section (Right 2/3)
+              // Content Section
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16.0, 16.0, 12.0, 16.0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Text Content (Left)
+                      // Text Content
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,7 +112,7 @@ class CommunityCard extends StatelessWidget {
                                       style: const TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF7B904B), // Olive Green
+                                        color: Color(0xFF7B904B),
                                       ),
                                     ),
                                     const Padding(
@@ -128,7 +125,7 @@ class CommunityCard extends StatelessWidget {
                                         style: const TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFFC5A027), // Gold
+                                          color: Color(0xFFC5A027),
                                         ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -164,7 +161,7 @@ class CommunityCard extends StatelessWidget {
                         ),
                       ),
 
-                      // Member Count (Right Center)
+                      // Member Count
                       Container(
                         margin: const EdgeInsets.only(left: 8.0),
                         child: Row(
@@ -193,7 +190,6 @@ class CommunityCard extends StatelessWidget {
     );
   }
 
-  // Helper untuk icon default berdasarkan jenis olahraga
   IconData _getIconForSport(String type) {
     switch (type.toLowerCase()) {
       case 'futsal':
@@ -202,7 +198,7 @@ class CommunityCard extends StatelessWidget {
         return Icons.sports_basketball;
       case 'bulutangkis':
       case 'badminton':
-        return Icons.sports_tennis; // Tidak ada icon badminton spesifik di Material Icons default
+        return Icons.sports_tennis;
       default:
         return Icons.groups;
     }

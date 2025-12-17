@@ -1,5 +1,7 @@
+// lib/review/widgets/statistik.dart
+
 import 'package:flutter/material.dart';
-import 'package:lapangin_mobile/review/models/review_entry.dart';
+import 'package:lapangin/review/models/review_entry.dart';
 
 class ReviewStats extends StatelessWidget {
   final List<ReviewEntry> reviews;
@@ -40,7 +42,6 @@ class ReviewStats extends StatelessWidget {
               Text(
                 average.toStringAsFixed(1),
                 style: const TextStyle(
-                  
                   fontSize: 38,
                   fontWeight: FontWeight.bold,
                 ),

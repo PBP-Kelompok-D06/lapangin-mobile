@@ -3,12 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:lapangin_mobile/community/models/community_models.dart';
+import 'package:lapangin/community/models/community_models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:lapangin_mobile/community/screens/community_detail_page.dart';
-import 'package:lapangin_mobile/community/widgets/community_card.dart'; // Pastikan widget ini ada
-import 'package:lapangin_mobile/landing/widgets/left_drawer.dart';
-import 'package:lapangin_mobile/config.dart';
+import 'package:lapangin/community/screens/community_detail_page.dart';
+import 'package:lapangin/community/widgets/community_card.dart';
+import 'package:lapangin/landing/widgets/left_drawer.dart';
+import 'package:lapangin/config.dart';
 
 class CommunityPage extends StatefulWidget {
   const CommunityPage({Key? key}) : super(key: key);
@@ -18,7 +18,6 @@ class CommunityPage extends StatefulWidget {
 }
 
 class _CommunityPageState extends State<CommunityPage> {
-  // State variables
   String _searchQuery = "";
   String currentUsername = "Guest";
 
@@ -32,7 +31,6 @@ class _CommunityPageState extends State<CommunityPage> {
     final request = context.read<CookieRequest>();
     final userData = request.jsonData;
     
-    // Logic from menu.dart to enable consistent username retrieval
     const potentialKeys = ['username', 'first_name', 'name', 'fullname'];
     String? foundName;
 
@@ -53,7 +51,6 @@ class _CommunityPageState extends State<CommunityPage> {
         });
       }
     } else {
-       // Fallback to SharedPreferences if CookieRequest is empty (e.g. after refresh)
        SharedPreferences prefs = await SharedPreferences.getInstance();
        if (mounted) {
          setState(() {
@@ -75,16 +72,10 @@ class _CommunityPageState extends State<CommunityPage> {
   String _selectedCategory = "Jenis Olahraga";
   String _selectedLocation = "Filter Lokasi";
   
-  // Options for filters
   final List<String> _categories = ["Jenis Olahraga", "Futsal", "Bulutangkis", "Basket", "Renang"];
   final List<String> _locations = ["Filter Lokasi", "Depok", "Jakarta", "Bogor", "Tangerang", "Bekasi"];
 
-  // Fungsi fetch data
   Future<List<Community>> fetchCommunities(CookieRequest request) async {
-    // GANTI URL SESUAI IP KOMPUTER MU (JANGAN LOCALHOST JIKA PAKAI EMULATOR)
-    // Contoh Android Emulator: http://10.0.2.2:8000/community/api/communities/
-    // GANTI URL SESUAI IP KOMPUTER MU (JANGAN LOCALHOST JIKA PAKAI EMULATOR)
-    // Contoh Android Emulator: http://10.0.2.2:8000/community/api/communities/
     final response = await request.get('${Config.localUrl}/community/api/communities/');
 
     List<Community> listCommunity = [];
@@ -143,14 +134,12 @@ class _CommunityPageState extends State<CommunityPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // 1. Header removed (moved to AppBar)
-
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 2. Hero Section
+                    // Hero Section
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                       height: 180,
@@ -208,7 +197,7 @@ class _CommunityPageState extends State<CommunityPage> {
                       ),
                     ),
 
-                    // 3. Search & Filter Section
+                    // Search & Filter
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Column(
@@ -219,7 +208,7 @@ class _CommunityPageState extends State<CommunityPage> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF8B9E6D), // Olive green
+                              color: Color(0xFF8B9E6D),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -261,7 +250,7 @@ class _CommunityPageState extends State<CommunityPage> {
 
                     const SizedBox(height: 16),
 
-                    // 4. Community List
+                    // Community List
                     FutureBuilder(
                       future: fetchCommunities(request),
                       builder: (context, AsyncSnapshot<List<Community>> snapshot) {
@@ -302,7 +291,6 @@ class _CommunityPageState extends State<CommunityPage> {
                           return ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            // No horizontal padding on Listview, card handles it
                             padding: EdgeInsets.zero,
                             itemCount: filteredCommunities.length,
                             itemBuilder: (_, index) {

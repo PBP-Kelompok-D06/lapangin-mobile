@@ -1,15 +1,17 @@
+// lib/review/screens/review_lapangan.dart
+
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
-import 'package:lapangin_mobile/review/widgets/add_review.dart';
-import 'package:lapangin_mobile/review/widgets/card_review.dart';
-import 'package:lapangin_mobile/review/widgets/statistik.dart';
-import 'package:lapangin_mobile/review/models/review_entry.dart';
+import 'package:lapangin/review/widgets/add_review.dart';
+import 'package:lapangin/review/widgets/card_review.dart';
+import 'package:lapangin/review/widgets/statistik.dart';
+import 'package:lapangin/review/models/review_entry.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:lapangin_mobile/landing/widgets/left_drawer.dart';
-import 'package:lapangin_mobile/config.dart';
-import 'package:lapangin_mobile/review/widgets/chip.dart';
+import 'package:lapangin/landing/widgets/left_drawer.dart';
+import 'package:lapangin/config.dart';
+import 'package:lapangin/review/widgets/chip.dart';
 
 class ReviewPage extends StatefulWidget {
   final int fieldId;
@@ -223,7 +225,7 @@ class _ReviewPage extends State<ReviewPage> {
               ReviewStats(reviews: _allReviews),
               const SizedBox(height: 20),
 
-              /// === CHIP FILTER (LOKAL) ===
+              // Filter Chips
               Align(
                 alignment: Alignment.centerLeft,
                 child: ReviewFilterChips(
@@ -330,7 +332,7 @@ class _ReviewPage extends State<ReviewPage> {
                         onSubmit: (rating, content) async {
                           try {
                             final response = await request.post(
-                              "http://localhost:8000/review/api/add/${widget.fieldId}/",
+                              "${Config.localUrl}/review/api/add/${widget.fieldId}/",
                               jsonEncode({
                                 "rating": rating.toString(),
                                 "content": content,
