@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import '../services/booking_service.dart';
 import 'admin_transaction_history_page.dart';
+import 'package:lapangin_mobile/admin-dashboard/widgets/admin_left_drawer.dart';
 
 class AdminBookingPendingPage extends StatefulWidget {
   const AdminBookingPendingPage({super.key});
@@ -69,6 +70,7 @@ class _AdminBookingPendingPageState extends State<AdminBookingPendingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AdminLeftDrawer(activePage: 'Booking Masuk'),
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
