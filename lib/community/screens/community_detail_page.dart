@@ -160,9 +160,12 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
   // 3. Join Komunitas
   Future<void> joinCommunity(CookieRequest request) async {
     final url = '${Config.baseUrl}${Config.communityDetailBase}${widget.community.pk}/join-flutter/';
+    print("JOIN URL: $url");
+    print("LoggedIn: ${request.loggedIn}");
     
     try {
       final response = await request.post(url, {});
+      print("JOIN RESPONSE: $response");  // DEBUG LOG
       String message = response['message']?.toString().toLowerCase() ?? "";
       String status = response['status']?.toString().toLowerCase() ?? "";
 
