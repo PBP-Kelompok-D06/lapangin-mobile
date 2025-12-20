@@ -57,28 +57,19 @@ class CommunityCard extends StatelessWidget {
               Container(
                 width: 130,
                 decoration: BoxDecoration(
+                  color: Colors.grey[200],
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(8),
                     bottomLeft: Radius.circular(8),
                   ),
-                  image: fullImageUrl.isNotEmpty 
-                    ? DecorationImage(
-                        image: NetworkImage(fullImageUrl),
-                        fit: BoxFit.cover,
-                        onError: (exception, stackTrace) {},
-                      )
-                    : null,
-                  color: fullImageUrl.isEmpty ? Colors.grey[200] : null,
                 ),
-                child: fullImageUrl.isEmpty 
-                  ? Center(
-                      child: Icon(
-                        _getIconForSport(community.sportsType),
-                        size: 40,
-                        color: Colors.grey,
-                      ),
-                    ) 
-                  : null,
+                child: const Center(
+                  child: Icon(
+                    Icons.sports_soccer,
+                    size: 40,
+                    color: Colors.grey,
+                  ),
+                ),
               ),
               
               // Content Section (Right 2/3)
