@@ -9,7 +9,7 @@ import 'package:lapangin_mobile/admin-dashboard/widgets/quick_action_card.dart';
 import 'package:lapangin_mobile/admin-dashboard/screens/booking_pending_screen.dart';
 // Note: Imports for other screens are commented out until they are created/identified
 // import 'package:lapangin_mobile/booking/screens/transaction_history_screen.dart';
-// import 'package:lapangin_mobile/community/screens/create_community_screen.dart';
+import 'package:lapangin_mobile/admin-dashboard/screens/create_community_screen.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   final String username;
@@ -73,8 +73,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         break;
       case 'Buat Komunitas':
         // TODO: Navigate to Create Community Screen
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Halaman Buat Komunitas belum tersedia')),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const CreateCommunityScreen(),
+          ),
         );
         break;
       default:

@@ -27,6 +27,7 @@ class Config {
   static const String communityDetailBase = "/community/api/"; 
   static const String communityPostsBase = "/community/api/community/";
   static const String postOperationBase = "/community/api/post/";
+  static const String createCommunityEndpoint = "/community/api/create-flutter/";
   
   // Legacy support for existing code referencing localUrl directly
   // It is recommended to use baseUrl instead
