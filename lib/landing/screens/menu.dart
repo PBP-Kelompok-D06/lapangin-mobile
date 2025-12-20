@@ -1,3 +1,4 @@
+// lapangin/lib/landing/screens/menu.dart
 import 'package:flutter/material.dart';
 import 'package:lapangin_mobile/gallery/screens/gallery_detail_screen.dart';
 import 'package:lapangin_mobile/landing/widgets/left_drawer.dart';
@@ -82,66 +83,78 @@ class _MyHomePageState extends State<MyHomePage> {
     return initials;
   }
 
-  Future<void> fetchLapanganData() async {
-    final request = context.read<CookieRequest>();
-    setState(() {
-      _isLoading = true;
-      _errorMessage = '';
-    });
 
-    try {
-      final response = await request.get(apiUrl);
-      List<LapanganEntry> fetchedLapangans = [];
+Future<void> fetchLapanganData() async {
+  final request = context.read<CookieRequest>();
+  setState(() {
+    _isLoading = true;
+    _errorMessage = '';
+  });
 
-      if (response is List) {
-        for (var item in response) {
-          final id = item['id'];
-          final name = item['name'];
-          final typeString = item['type'];
-          final location = item['location'];
-          final price = item['price'];
-          final rating = item['rating'];
-          final reviewCount = item['review_count'];
-          String imagePath = item['image'] ?? "";
-          String imageUrl = imagePath.isNotEmpty
-              ? "${Config.baseUrl}/$imagePath"
-              : "";
+  try {
+    final response = await request.get(apiUrl);
+    List<LapanganEntry> fetchedLapangans = [];
 
-          if (id != null && name != null && typeString != null) {
-            fetchedLapangans.add(LapanganEntry(
-              id: id,
-              name: name,
-              type: typeValues.map[typeString]!,
-              location: location ?? "N/A",
-              price: price ?? 0,
-              rating: (rating is num) ? rating.toDouble() : 0.0,
-              reviewCount: reviewCount ?? 0,
-              image: imageUrl,
-            ));
+    if (response is List) {
+      for (var item in response) {
+        final id = item['id'];
+        final name = item['name'];
+        final typeString = item['type'];
+        final location = item['location'];
+        final price = item['price'];
+        final rating = item['rating'];
+        final reviewCount = item['review_count'];
+        String imagePath = item['image'] ?? "";
+        
+        // ✅ FIX: Hanya simpan path relatif, BUKAN full URL!
+        // Jika imagePath sudah berupa URL lengkap, ambil path-nya saja
+        String imageUrl = "";
+        if (imagePath.isNotEmpty) {
+          if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+            // Ambil path setelah domain
+            final uri = Uri.parse(imagePath);
+            imageUrl = uri.path; // Contoh: /media/lapangan_images/foto.jpg
           } else {
-            print('Peringatan: Item data tidak valid: $item');
+            // Sudah berupa path relatif
+            imageUrl = imagePath.startsWith('/') ? imagePath : '/$imagePath';
           }
         }
 
-        setState(() {
-          _lapangans = fetchedLapangans;
-          _filteredLapangans = fetchedLapangans;
-          _isLoading = false;
-        });
-      } else {
-        throw Exception("API response is not a valid list format.");
+        if (id != null && name != null && typeString != null) {
+          fetchedLapangans.add(LapanganEntry(
+            id: id,
+            name: name,
+            type: typeValues.map[typeString]!,
+            location: location ?? "N/A",
+            price: price ?? 0,
+            rating: (rating is num) ? rating.toDouble() : 0.0,
+            reviewCount: reviewCount ?? 0,
+            image: imageUrl, // ✅ Simpan path relatif, bukan full URL
+          ));
+        } else {
+          print('Peringatan: Item data tidak valid: $item');
+        }
       }
-    } catch (e) {
-      String errorDetail = e.toString().contains('FormatException')
-          ? 'Respons bukan JSON. Cek URL Django.'
-          : e.toString();
+
       setState(() {
-        _errorMessage = 'Gagal mengambil data: $errorDetail';
+        _lapangans = fetchedLapangans;
+        _filteredLapangans = fetchedLapangans;
         _isLoading = false;
       });
-      print('Error fetching data: $e');
+    } else {
+      throw Exception("API response is not a valid list format.");
     }
+  } catch (e) {
+    String errorDetail = e.toString().contains('FormatException')
+        ? 'Respons bukan JSON. Cek URL Django.'
+        : e.toString();
+    setState(() {
+      _errorMessage = 'Gagal mengambil data: $errorDetail';
+      _isLoading = false;
+    });
+    print('Error fetching data: $e');
   }
+}
 
   void _applyFilters() {
     setState(() {
