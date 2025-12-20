@@ -5,32 +5,57 @@ import 'package:lapangin_mobile/admin-dashboard/services/booking_service.dart';
 
 class AdminDashboardService {
   Future<DashboardStats> getDashboardStats(CookieRequest request) async {
+    int totalFields = 0;
+    int pendingBookings = 0;
+    int activeCommunities = 0;
+
+    // 1. Fetch Lapangan
     try {
-      // Fetch all stats in parallel
-      final results = await Future.wait([
-        AdminBookingService.getLapanganList(request),
-        AdminBookingService.getPendingBookings(request),
-        request.get('${Config.baseUrl}${Config.communityListEndpoint}'),
-      ]);
-
-      final lapanganList = results[0] as List;
-      final pendingBookings = results[1] as List;
-      final communityById = results[2] as List; // The endpoint returns a list of communities
-
-      return DashboardStats(
-        totalFields: lapanganList.length,
-        pendingBookings: pendingBookings.length,
-        activeCommunities: communityById.length,
-      );
+      final lapanganList = await AdminBookingService.getLapanganList(request);
+      totalFields = lapanganList.length;
     } catch (e) {
-      print("❌ Error fetching dashboard stats: $e");
-      // Fallback to 0 or rethrow depending on desired UX
-      // For now, return 0s so the UI at least loads
-      return DashboardStats(
-        totalFields: 0,
-        pendingBookings: 0,
-        activeCommunities: 0,
-      );
+      print("❌ Error fetching fields: $e");
+    }
+
+    // 2. Fetch Pending Bookings
+    try {
+      final pendingList = await AdminBookingService.getPendingBookings(request);
+      pendingBookings = pendingList.length;
+    } catch (e) {
+      print("❌ Error fetching pending bookings: $e");
+    }
+
+    // 3. Fetch Communities
+    try {
+      final response = await request.get('${Config.baseUrl}${Config.adminCommunityListEndpoint}?format=json');
+      if (response is Map && response.containsKey('data')) {
+        activeCommunities = (response['data'] as List).length;
+      } else if (response is List) {
+        activeCommunities = response.length;
+      }
+    } catch (e) {
+      print("❌ Error fetching communities: $e");
+    }
+
+    return DashboardStats(
+      totalFields: totalFields,
+      pendingBookings: pendingBookings,
+      activeCommunities: activeCommunities,
+    );
+  }
+
+  Future<List<dynamic>> fetchAdminCommunities(CookieRequest request) async {
+    try {
+      final response = await request.get('${Config.baseUrl}${Config.adminCommunityListEndpoint}?format=json');
+      if (response is Map && response.containsKey('data')) {
+        return response['data'] as List<dynamic>;
+      } else if (response is List) {
+         return response;
+      }
+      return [];
+    } catch (e) {
+      print("Error fetching admin communities: $e");
+      return [];
     }
   }
 }

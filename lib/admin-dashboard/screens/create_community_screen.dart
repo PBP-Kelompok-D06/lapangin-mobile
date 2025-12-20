@@ -9,7 +9,9 @@ import 'package:provider/provider.dart';
 import 'package:lapangin_mobile/config.dart';
 
 class CreateCommunityScreen extends StatefulWidget {
-  const CreateCommunityScreen({super.key});
+  final Map<String, dynamic>? communityToEdit; 
+
+  const CreateCommunityScreen({super.key, this.communityToEdit});
 
   @override
   State<CreateCommunityScreen> createState() => _CreateCommunityScreenState();
@@ -20,7 +22,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
 
   // Form Fields
   String _name = "";
-  String _sportsType = "Badminton"; // Default value
+  String _sportsType = "Futsal"; // Default value matched to options options
   String _location = "";
   int _maxMember = 50; // Default value
   String _contactPerson = "";
@@ -31,15 +33,49 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
   File? _imageFile; // For Mobile (Android/iOS)
   Uint8List? _webImageBytes; // For Web
   final ImagePicker _picker = ImagePicker();
+  String? _existingImageUrl;
 
   // Dropdown Options
   final List<String> _sportsOptions = [
-    'Badminton',
     'Futsal',
+    'Bulutangkis',
     'Basket',
   ];
 
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.communityToEdit != null) {
+      _initEditMode();
+    }
+  }
+
+  void _initEditMode() {
+    final data = widget.communityToEdit!;
+    _name = data['community_name'] ?? "";
+    _description = data['description'] ?? "";
+    _location = data['location'] ?? "";
+    _maxMember = data['max_member'] ?? 50;
+    _contactPerson = data['contact_person'] ?? data['contact_person_name'] ?? "";
+    _contactPhone = data['contact_phone'] ?? "";
+    _existingImageUrl = data['image_url'];
+    
+    // Normalize Sports Type (Ensure it exists in options, else add or default)
+    String type = data['sports_type'] ?? "Futsal";
+    // Capitalize first letter logic or matching exact string
+    if (_sportsOptions.contains(type)) {
+      _sportsType = type;
+    } else {
+        // Try to match ignoring case
+        final match = _sportsOptions.firstWhere(
+           (e) => e.toLowerCase() == type.toLowerCase(), 
+           orElse: () => "Futsal"
+        );
+        _sportsType = match;
+    }
+  }
 
   Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(
@@ -70,8 +106,10 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
       return;
     }
 
-    if ((!kIsWeb && _imageFile == null) || (kIsWeb && _webImageBytes == null)) {
-      ScaffoldMessenger.of(context).showSnackBar(
+    // Validation: Image required only for create, optional for edit
+    bool hasNewImage = (!kIsWeb && _imageFile != null) || (kIsWeb && _webImageBytes != null);
+    if (!hasNewImage && widget.communityToEdit == null) {
+       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Harap upload foto komunitas.")),
       );
       return;
@@ -83,16 +121,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
     });
 
     try {
-      // 1. Convert Image to Base64
-      String base64Image;
-      if (kIsWeb) {
-        base64Image = "data:image/jpeg;base64,${base64Encode(_webImageBytes!)}";
-      } else {
-        final bytes = await _imageFile!.readAsBytes();
-        base64Image = "data:image/jpeg;base64,${base64Encode(bytes)}";
-      }
-
-      // 2. Prepare JSON Data
+      // 1. Prepare Payload
       final Map<String, dynamic> payload = {
         "community_name": _name,
         "description": _description,
@@ -101,31 +130,74 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
         "max_member": _maxMember.toString(),
         "contact_person": _contactPerson,
         "contact_phone": _contactPhone,
-        "image": base64Image,
       };
 
-      // 3. Send Request
-      final response = await request.post(
-        "${Config.baseUrl}${Config.createCommunityEndpoint}",
-        payload,
-      );
+      // 2. Handle Image
+      if (hasNewImage) {
+         String base64Image;
+          if (kIsWeb) {
+            base64Image = "data:image/jpeg;base64,${base64Encode(_webImageBytes!)}";
+          } else {
+            final bytes = await _imageFile!.readAsBytes();
+            base64Image = "data:image/jpeg;base64,${base64Encode(bytes)}";
+          }
+          payload['image'] = base64Image;
+          // IMPORTANT: If edit endpoint mirrors `admin_community_edit`, it might expect 'community_image' or 'image' in payload. 
+          // The view: keys -> 'community_image' or 'image' from request.FILES or base64 'image' in json body. 
+          // So 'image' key with base64 string should work.
+      } else if (widget.communityToEdit != null) {
+          // No image update
+      }
+
+      // 3. Determine URL and Method
+      String url;
+      if (widget.communityToEdit != null) {
+         // Edit Mode
+         // URL: /community/admin/<pk>/edit/
+         final pk = widget.communityToEdit!['pk'];
+         url = "${Config.baseUrl}${Config.adminCommunityEditEndpoint}$pk/edit/";
+      } else {
+         // Create Mode
+         url = "${Config.baseUrl}${Config.createCommunityEndpoint}";
+      }
+
+      // 4. Send Request
+      final response = await request.post(url, payload);
 
       setState(() {
         _isLoading = false;
       });
 
-      if (response['status'] == true) {
+      // Handle Response
+      // Standardize response check. If Map and status==True/true.
+      bool success = false;
+      String message = "";
+
+      if (response is Map) {
+         if (response['status'] == true || response['status'] == 'success') {
+            success = true;
+            message = widget.communityToEdit != null ? "Komunitas berhasil diperbarui!" : "Komunitas berhasil dibuat!";
+         } else {
+            message = response['message'] ?? "Gagal menyimpan data.";
+         }
+      } else {
+         // Fallback if response is html or something unexpected (though we expect JSON)
+         // Assuming success if no error thrown? No, safer to assume failure unless explicit success
+         message = "Terjadi kesalahan respon server.";
+      }
+      
+      // Override for Edit if it returns HTML (redirect) - unlikely if we send JSON headers but possible.
+      // But admin_community_edit supports JSON response explicitly.
+
+      if (success) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Komunitas berhasil dibuat!")),
-        );
-        Navigator.pop(context, true); // Return true to indicate success
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+        Navigator.pop(context, true); 
       } else {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text(response['message'] ?? "Gagal membuat komunitas.")),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
       }
+
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -140,6 +212,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
   @override
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
+    final isEdit = widget.communityToEdit != null;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -150,9 +223,9 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Tambah Komunitas',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        title: Text(
+          isEdit ? 'Edit Komunitas' : 'Tambah Komunitas',
+          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         centerTitle: false,
       ),
@@ -166,6 +239,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
               // NAMA KOMUNITAS
               _buildLabel("NAMA KOMUNITAS", true),
               TextFormField(
+                initialValue: _name,
                 decoration: _inputDecoration("Contoh: Futsal Arena Senayan"),
                 validator: (value) =>
                     value == null || value.isEmpty ? "Nama komunitas wajib diisi" : null,
@@ -185,9 +259,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
                   );
                 }).toList(),
                 onChanged: (String? newValue) {
-                  setState(() {
-                    _sportsType = newValue!;
-                  });
+                  if(newValue != null) setState(() => _sportsType = newValue);
                 },
               ),
               const SizedBox(height: 16),
@@ -195,6 +267,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
               // LOKASI
               _buildLabel("LOKASI", true),
               TextFormField(
+                initialValue: _location,
                 decoration: _inputDecoration("Contoh: Jakarta Selatan"),
                 validator: (value) =>
                     value == null || value.isEmpty ? "Lokasi wajib diisi" : null,
@@ -205,7 +278,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
               // MAKSIMAL ANGGOTA
               _buildLabel("MAKSIMAL ANGGOTA", true),
               TextFormField(
-                initialValue: "50",
+                initialValue: _maxMember.toString(),
                 decoration: _inputDecoration("50"),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -220,6 +293,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
               // NAMA CONTACT PERSON
               _buildLabel("NAMA CONTACT PERSON", true),
               TextFormField(
+                initialValue: _contactPerson,
                 decoration: _inputDecoration("juragan01"),
                 validator: (value) =>
                     value == null || value.isEmpty ? "Contact Person wajib diisi" : null,
@@ -230,7 +304,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
               // NOMOR TELEPON
               _buildLabel("NOMOR TELEPON", true),
               TextFormField(
-                initialValue: "", 
+                initialValue: _contactPhone, 
                 decoration: _inputDecoration("08123456789"),
                 keyboardType: TextInputType.phone,
                 validator: (value) =>
@@ -240,7 +314,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
               const SizedBox(height: 16),
 
               // FOTO KOMUNITAS
-              _buildLabel("FOTO KOMUNITAS", true),
+              _buildLabel("FOTO KOMUNITAS", !isEdit),
               GestureDetector(
                 onTap: _pickImage,
                 child: Container(
@@ -249,7 +323,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
                     border: Border.all(color: Colors.grey.shade400, style: BorderStyle.solid),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: (_imageFile == null && _webImageBytes == null)
+                  child: (_imageFile == null && _webImageBytes == null && _existingImageUrl == null)
                       ? SizedBox(
                           height: 200,
                           child: Column(
@@ -280,19 +354,31 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: kIsWeb 
+                              child: kIsWeb && _webImageBytes != null
                                ? Image.memory(
                                    _webImageBytes!,
                                    width: double.infinity,
                                    height: 200,
                                    fit: BoxFit.cover,
                                  )
-                               : Image.file(
+                               : (_imageFile != null 
+                                  ? Image.file(
                                     _imageFile!,
                                     width: double.infinity,
                                     height: 200,
                                     fit: BoxFit.cover,
-                                  ),
+                                  )
+                                  : Image.network(
+                                     _existingImageUrl!,
+                                     width: double.infinity,
+                                     height: 200,
+                                     fit: BoxFit.cover,
+                                     errorBuilder: (ctx, err, stack) => const SizedBox(
+                                        height: 200, 
+                                        child: Center(child: Icon(Icons.broken_image))
+                                     ),
+                                  )
+                                 ),
                             ),
                             const SizedBox(height: 8),
                             SizedBox(
@@ -316,6 +402,7 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
               // DESKRIPSI
               _buildLabel("DESKRIPSI", true),
               TextFormField(
+                initialValue: _description,
                 maxLines: 4,
                 decoration: _inputDecoration("Ceritakan tentang komunitas ini...."),
                 validator: (value) =>
@@ -369,9 +456,9 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Text(
-                                "Simpan",
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                            : Text(
+                                isEdit ? "Simpan Perubahan" : "Simpan",
+                                style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
                       ),
                     ),
