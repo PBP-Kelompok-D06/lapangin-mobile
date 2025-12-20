@@ -6,10 +6,14 @@ import 'package:lapangin_mobile/admin-dashboard/services/admin_dashboard_service
 import 'package:lapangin_mobile/admin-dashboard/widgets/booking_alert_banner.dart';
 import 'package:lapangin_mobile/admin-dashboard/widgets/dashboard_overview_card.dart';
 import 'package:lapangin_mobile/admin-dashboard/widgets/quick_action_card.dart';
-import 'package:lapangin_mobile/admin-dashboard/screens/booking_pending_screen.dart';
-// Note: Imports for other screens are commented out until they are created/identified
-// import 'package:lapangin_mobile/booking/screens/transaction_history_screen.dart';
+import 'package:lapangin_mobile/admin-dashboard/screens/admin_booking_pending_page.dart';
+import 'package:lapangin_mobile/admin-dashboard/screens/admin_transaction_history_page.dart';
 import 'package:lapangin_mobile/admin-dashboard/screens/create_community_screen.dart';
+import 'package:lapangin_mobile/admin-dashboard/screens/admin_community_page.dart';
+import 'package:lapangin_mobile/admin-dashboard/screens/admin_field_page.dart';
+import 'package:lapangin_mobile/admin-dashboard/screens/admin_field_form_page.dart';
+
+import 'package:lapangin_mobile/landing/widgets/left_drawer.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   final String username;
@@ -52,23 +56,25 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     
     switch (action) {
       case 'Tambah Lapangan':
-        // TODO: Navigate to Add Field Screen
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Halaman Tambah Lapangan belum tersedia')),
-        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminFieldFormPage()),
+        ).then((_) => _fetchStats());
         break;
       case 'Approve Booking':
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => BookingPendingScreen(request: request),
+            builder: (context) => const AdminBookingPendingPage(),
           ),
-        );
+        ).then((_) => _fetchStats());
         break;
       case 'Lihat Transaksi':
-        // TODO: Navigate to Transaction History Screen
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Halaman Riwayat Transaksi belum tersedia')),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+             builder: (context) => const AdminTransactionHistoryPage(),
+          ),
         );
         break;
       case 'Buat Komunitas':
@@ -89,15 +95,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50], // Light background
+      drawer: const LeftDrawer(),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.black87),
-          onPressed: () {
-            // TODO: Open Drawer
-          },
-        ),
+        // leading removed to use default drawer icon
         actions: [
           Row(
             children: [
@@ -147,7 +149,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     iconColor: const Color(0xFF7A8450),
                     iconBgColor: const Color(0xFFE8EFCF),
                     actionText: "Kelola",
-                    onTap: () {},
+                    onTap: () {
+                       Navigator.push(
+                         context, 
+                         MaterialPageRoute(builder: (context) => const AdminFieldPage())
+                       ).then((_) => _fetchStats());
+                    },
                   ),
                   DashboardOverviewCard(
                     title: "Total",
@@ -167,7 +174,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     iconColor: const Color(0xFF4A89DC),
                     iconBgColor: const Color(0xFFD6EAFC),
                     actionText: "Kelola",
-                    onTap: () {},
+                    onTap: () {
+                       Navigator.push(
+                         context, 
+                         MaterialPageRoute(builder: (context) => const AdminCommunityPage())
+                       ).then((_) => _fetchStats());
+                    },
                   ),
 
                   // Alert Banner

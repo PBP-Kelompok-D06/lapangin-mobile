@@ -24,8 +24,24 @@ class Config {
   
   // Community endpoints
   static const String communityListEndpoint = "/community/api/communities/";
-  static const String communityDetailBase = "/community/api/"; 
+  static const String adminCommunityListEndpoint = "/community/api/communities/"; 
+  static const String adminCommunityEditEndpoint = "/community/admin/"; // + <pk>/edit/
+  
+  // Admin Dashboard
+  static const String adminDashboardStatsEndpoint = "/dashboard/api/stats/";
+  static const String adminPendingBookingsEndpoint = "/dashboard/api/booking/pending/";
+  static const String adminBookingApproveEndpoint = "/dashboard/api/booking/"; // + <id>/approve/
+  static const String adminBookingRejectEndpoint = "/dashboard/api/booking/"; // + <id>/reject/
+  static const String adminTransactionListEndpoint = "/dashboard/transaksi/";
+  
+  // Menggunakan Hybrid View untuk operasi CRUD (Create/Update/Delete) karena API View mungkin belum stabil
+  static const String adminLapanganCreateEndpoint = "/dashboard/lapangan/create/";
+  static const String adminLapanganListEndpoint = "/dashboard/api/lapangan/list/"; 
+  static const String adminLapanganUpdateEndpoint = "/dashboard/lapangan/"; // + <id>/update/
+  static const String adminLapanganDeleteEndpoint = "/dashboard/lapangan/"; // + <id>/delete/
+  static const String adminCommunityDeleteEndpoint = "/community/admin/"; 
   static const String communityPostsBase = "/community/api/community/";
+  static const String communityDetailBase = "/community/api/community/"; // Alias for detailed actions
   static const String postOperationBase = "/community/api/post/";
   static const String createCommunityEndpoint = "/community/api/create-flutter/";
   
