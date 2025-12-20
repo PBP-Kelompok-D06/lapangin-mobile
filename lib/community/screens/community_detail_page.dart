@@ -162,7 +162,7 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
     final url = '${Config.baseUrl}${Config.communityDetailBase}${widget.community.pk}/join-flutter/';
     print("JOIN URL: $url");
     print("LoggedIn: ${request.loggedIn}");
-    
+
     try {
       final response = await request.post(url, {});
       print("JOIN RESPONSE: $response");  // DEBUG LOG
@@ -225,55 +225,56 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
   }
 
   // 5. Buat Post Baru
-  Future<void> createPost(CookieRequest request) async {
-      if (_postController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text("Konten tidak boleh kosong"), backgroundColor: Colors.red),
-         );
-        return;
-      }
-
-      // URL FIX: api/<int:pk>/post/create-flutter/
-      final url = '${Config.baseUrl}${Config.communityDetailBase}${widget.community.pk}/post/create-flutter/';
-
-      try {
-        String? base64Image;
-        if (_selectedImage != null) {
-          final bytes = await _selectedImage!.readAsBytes();
-          base64Image = base64Encode(bytes);
-          print("Sending image with length: ${base64Image.length}"); // DEBUG LOG
-        }
-
-        final response = await request.post(url, {
-            'content': _postController.text,
-            'image': base64Image, // Kirim null jika tidak ada gambar
-        });
-        
-        print("Create Post Response: $response"); // DEBUG LOG
-
-        if (!mounted) return;
-
-        if (response['status'] == 'success') {
-           _postController.clear();
-           setState(() {
-             _selectedImage = null; // Reset image setelah berhasil upload
-           }); 
-           setState(() {}); // Refresh list post
-           ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text("Post berhasil dibuat!"), backgroundColor: Colors.green),
-           );
-        } else {
-           ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(content: Text(response['message'] ?? "Gagal membuat post"), backgroundColor: Colors.red),
-           );
-        }
-      } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
-        );
-      }
+Future<void> createPost(CookieRequest request) async {
+  if (_postController.text.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Konten tidak boleh kosong"), backgroundColor: Colors.red),
+    );
+    return;
   }
+
+  final url = '${Config.baseUrl}${Config.communityDetailBase}${widget.community.pk}/post/create-flutter/';
+
+  try {
+    // Jangan kirim key "image" kalau tidak ada gambar
+    final Map<String, dynamic> body = {
+      'content': _postController.text,
+    };
+
+    if (_selectedImage != null) {
+      final bytes = await _selectedImage!.readAsBytes();
+      final base64Image = base64Encode(bytes);
+      body['image'] = base64Image;
+      print("Sending image with length: ${base64Image.length}");
+    }
+
+    final response = await request.post(url, body);
+    print("Create Post Response: $response");
+
+    if (!mounted) return;
+
+    if (response['status'] == 'success') {
+      _postController.clear();
+      setState(() {
+        _selectedImage = null;
+      });
+      setState(() {}); // refresh list
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Post berhasil dibuat!"), backgroundColor: Colors.green),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response['message'] ?? "Gagal membuat post"), backgroundColor: Colors.red),
+      );
+    }
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+    );
+  }
+}
+
 
   // 6. Hapus Post
   Future<void> deletePost(CookieRequest request, int postPk) async {
@@ -698,9 +699,18 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
             FutureBuilder(
               future: fetchPosts(request),
               builder: (context, AsyncSnapshot snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                   return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
-                }
+                    if (snapshot.hasError) {
+      print("SNAPSHOT ERROR: ${snapshot.error}");
+      print("SNAPSHOT STACK: ${snapshot.stackTrace}");
+    }
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.all(20.0),
@@ -760,14 +770,16 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
                            ),
                            const SizedBox(height: 12),
                            Text(post.content),
-                           if (post.imageUrl != null && post.imageUrl!.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 12.0),
-                                child: Image.network(
-                                  post.imageUrl!.startsWith('http') ? post.imageUrl! : '${Config.baseUrl}${post.imageUrl}',
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
+                           if ((post.imageUrl ?? '').isNotEmpty)
+  Padding(
+    padding: const EdgeInsets.only(top: 12.0),
+    child: Image.network(
+      post.imageUrl!.startsWith('http')
+          ? post.imageUrl!
+          : '${Config.baseUrl}${post.imageUrl}',
+      fit: BoxFit.cover,
+    ),
+  ),
                            const SizedBox(height: 12),
                            
                            // --- LIST KOMENTAR ---
@@ -836,10 +848,15 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
                                    ),
                                    IconButton(
                                      icon: const Icon(Icons.send, color: Color(0xFF556B2F)),
-                                     onPressed: () {
-                                       String content = _commentControllers[post.pk]?.text ?? "";
-                                       createComment(request, post.pk, content);
-                                     },
+                                     onPressed: () async {
+  String content = _commentControllers[post.pk]?.text ?? "";
+  try {
+    await createComment(request, post.pk, content);
+  } catch (e, st) {
+    print("CREATE COMMENT ERROR: $e");
+    print(st);
+  }
+},
                                    )
                                  ],
                                ),

@@ -61,11 +61,12 @@ class CommunityComment {
   });
 
   factory CommunityComment.fromJson(Map<String, dynamic> json) {
+    final user = json['user'];
     return CommunityComment(
-      // Sesuai views.py: 'username' dikirim sebagai string langsung
-      username: json['username'] ?? "Anonymous", 
-      content: json['content'] ?? "",
-      createdAt: json['created_at'] ?? "-",
+      username: json['username'] ??
+          (user != null ? (user['username'] ?? 'Anonymous') : 'Anonymous'),
+      content: json['content'] ?? '',
+      createdAt: json['created_at'] ?? '-',
     );
   }
 }
@@ -90,26 +91,17 @@ class CommunityPost {
     required this.comments,
   });
 
-  factory CommunityPost.fromJson(Map<String, dynamic> json) {
-    return CommunityPost(
-      pk: json['pk'],
-      
-      // ✅ PERUBAHAN 1: Username sekarang diambil langsung (Flat)
-      // Karena di views.py kita ubah jadi: 'username': post.user.username
-      username: json['username'] ?? 'Anonymous', 
-      
-      content: json['content'] ?? '',
-      imageUrl: json['image_url'],
-      createdAt: json['created_at'] ?? "-",
-      commentsCount: json['comments_count'] ?? 0,
-      
-      // ✅ PERUBAHAN 2: Parsing List Komentar
-      // Kita membaca array 'comments' dari JSON backend
-      comments: json['comments'] != null
-          ? (json['comments'] as List)
-              .map((i) => CommunityComment.fromJson(i))
-              .toList()
-          : [],
-    );
-  }
+factory CommunityPost.fromJson(Map<String, dynamic> json) {
+  return CommunityPost(
+    pk: json['pk'] ?? 0,
+    username: json['username'] ?? 'Anonymous',
+    content: json['content'] ?? '',
+    createdAt: json['created_at'] ?? '-',
+    imageUrl: json['image_url'] as String?,           // boleh null
+    commentsCount: json['comments_count'] ?? 0,
+    comments: (json['comments'] as List? ?? [])
+        .map((i) => CommunityComment.fromJson(i as Map<String, dynamic>))
+        .toList(),
+  );
+}
 }

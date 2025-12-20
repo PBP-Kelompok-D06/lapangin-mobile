@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+
 import 'package:lapangin_mobile/admin-dashboard/screens/admin_dashboard_page.dart';
 import 'package:lapangin_mobile/admin-dashboard/screens/admin_field_page.dart';
 import 'package:lapangin_mobile/admin-dashboard/screens/admin_booking_pending_page.dart';
 import 'package:lapangin_mobile/admin-dashboard/screens/admin_transaction_history_page.dart';
 import 'package:lapangin_mobile/admin-dashboard/screens/admin_community_page.dart';
+import 'package:lapangin_mobile/authbooking/screens/login.dart';
+import 'package:lapangin_mobile/config.dart';
 
 class AdminLeftDrawer extends StatelessWidget {
   final String activePage;
@@ -18,7 +23,7 @@ class AdminLeftDrawer extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              // Custom Header
+              // Header
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Row(
@@ -26,9 +31,9 @@ class AdminLeftDrawer extends StatelessWidget {
                   children: [
                     const Row(
                       children: [
-                         Icon(Icons.settings, color: Colors.white, size: 24), // Using settings icon as placeholder for the one in image if generic
-                         SizedBox(width: 10),
-                         Text(
+                        Icon(Icons.settings, color: Colors.white, size: 24),
+                        SizedBox(width: 10),
+                        Text(
                           "Dashboard",
                           style: TextStyle(
                             color: Colors.white,
@@ -46,19 +51,21 @@ class AdminLeftDrawer extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              
-              // Menu Items
+
+              // Menu items
               _buildMenuItem(
                 context,
                 title: "Home",
-                icon: Icons.dashboard, 
+                icon: Icons.dashboard,
                 isSelected: activePage == 'Home',
                 onTap: () {
-                  Navigator.pop(context); // Close drawer
+                  Navigator.pop(context);
                   if (activePage != 'Home') {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => const AdminDashboardPage()),
+                      MaterialPageRoute(
+                        builder: (context) => const AdminDashboardPage(),
+                      ),
                     );
                   }
                 },
@@ -66,14 +73,16 @@ class AdminLeftDrawer extends StatelessWidget {
               _buildMenuItem(
                 context,
                 title: "Lapangan",
-                icon: Icons.stadium, 
+                icon: Icons.stadium,
                 isSelected: activePage == 'Lapangan',
                 onTap: () {
                   Navigator.pop(context);
                   if (activePage != 'Lapangan') {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const AdminFieldPage()),
+                      MaterialPageRoute(
+                        builder: (context) => const AdminFieldPage(),
+                      ),
                     );
                   }
                 },
@@ -88,7 +97,10 @@ class AdminLeftDrawer extends StatelessWidget {
                   if (activePage != 'Booking Masuk') {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const AdminBookingPendingPage()),
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const AdminBookingPendingPage(),
+                      ),
                     );
                   }
                 },
@@ -103,7 +115,10 @@ class AdminLeftDrawer extends StatelessWidget {
                   if (activePage != 'Riwayat Transaksi') {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const AdminTransactionHistoryPage()),
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const AdminTransactionHistoryPage(),
+                      ),
                     );
                   }
                 },
@@ -118,10 +133,72 @@ class AdminLeftDrawer extends StatelessWidget {
                   if (activePage != 'Komunitas') {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const AdminCommunityPage()),
+                      MaterialPageRoute(
+                        builder: (context) => const AdminCommunityPage(),
+                      ),
                     );
                   }
                 },
+              ),
+
+              // Logout tepat di bawah opsi terakhir
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.white),
+                  title: const Text(
+                    'Logout',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  onTap: () async {
+                    final request = context.read<CookieRequest>();
+
+                    Navigator.pop(context); // tutup drawer dulu
+
+                    try {
+                      final response = await request.logout(
+                        "${Config.baseUrl}${Config.logoutEndpoint}",
+                      );
+
+                      if (!context.mounted) return;
+
+                      String message = response["message"] ?? "";
+                      if (request.loggedIn) {
+                        message = "Logout failed";
+                      } else {
+                        message = "Logout successful";
+                      }
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(message)),
+                      );
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginPage(),
+                        ),
+                      );
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Logout failed: $e"),
+                        ),
+                      );
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginPage(),
+                        ),
+                      );
+                    }
+                  },
+                ),
               ),
             ],
           ),
@@ -130,7 +207,8 @@ class AdminLeftDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, {
+  Widget _buildMenuItem(
+    BuildContext context, {
     required String title,
     required IconData icon,
     required bool isSelected,
@@ -139,7 +217,8 @@ class AdminLeftDrawer extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFA5C165) : Colors.transparent, // Lighter green for active
+        color:
+            isSelected ? const Color(0xFFA5C165) : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: ListTile(
@@ -153,8 +232,9 @@ class AdminLeftDrawer extends StatelessWidget {
           ),
         ),
         onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-        visualDensity: const VisualDensity(vertical: -2), // Compact
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+        visualDensity: const VisualDensity(vertical: -2),
       ),
     );
   }
