@@ -57,12 +57,66 @@ class _AdminFieldFormPageState extends State<AdminFieldFormPage> {
       _descController.text = widget.fieldData!['deskripsi'] ?? '';
       _facilitiesController.text = widget.fieldData!['fasilitas'] ?? '';
       
-      // Existing images handling would go here if API provided them in list
-      // For now, primary image might be in 'image_url'
-      _existingImageUrl1 = widget.fieldData!['image_url'];
-      // _existingImageUrl2/3 usually need detailed fetch or if list has them
+      // Existing images handling
+      String? imgUrl = widget.fieldData!['image_url'];
+      if (imgUrl != null && imgUrl.isNotEmpty && !imgUrl.startsWith('http')) {
+        _existingImageUrl1 = "${Config.baseUrl}$imgUrl";
+      } else {
+        _existingImageUrl1 = imgUrl;
+      }
+      
+      // Attempt to load other images if valid keys exist, otherwise leave null
+      // Assuming keys might be 'image_url_2' etc, but for now just fixing main based on valid data observed.
+      
+      // Ensure description is properly loaded. If empty, it might be because the list API didn't return it.
+      // But unlike community, field list API usually returns description. 
+      // User says "deskripsinya gaada".
+      // Let's ensure we check both 'deskripsi' and 'description' keys just in case.
+      _descController.text = widget.fieldData!['deskripsi'] ?? widget.fieldData!['description'] ?? '';
     } else {
         // Default select first just in case or leave null for hint
+    }
+    
+    // DEBUG PRINT
+    if (widget.fieldData != null) {
+      print("🔍 [AdminFieldFormPage] Initial Data: ${widget.fieldData}");
+    }
+
+    if (widget.fieldData != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _fetchDetail();
+      });
+    }
+  }
+
+  Future<void> _fetchDetail() async {
+    try {
+      final request = context.read<CookieRequest>();
+      final id = widget.fieldData!['pk'] ?? widget.fieldData!['id'];
+      
+      print("🔍 [AdminFieldFormPage] Fetching details for ID: $id");
+      final detail = await AdminBookingService.getFieldDetail(request, id);
+      print("🔍 [AdminFieldFormPage] Detail Response: $detail");
+      
+      if (mounted) {
+        setState(() {
+           // Update key fields if they exist in detail
+           // Detail might have different keys depending on endpoint, usually standard
+           if (detail.containsKey('deskripsi')) {
+             _descController.text = detail['deskripsi'] ?? ''; // Ensure null safety
+           } else if (detail.containsKey('description')) {
+             _descController.text = detail['description'] ?? '';
+           }
+           
+           print("🔍 [AdminFieldFormPage] Updated Description: '${_descController.text}'");
+           
+           if (detail.containsKey('fasilitas')) {
+             _facilitiesController.text = detail['fasilitas'] ?? '';
+           }
+        });
+      }
+    } catch (e) {
+      print("Error fetching detail: $e");
     }
   }
 

@@ -20,14 +20,15 @@ class CreateCommunityScreen extends StatefulWidget {
 class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Form Fields
-  String _name = "";
+  // Controllers
+  late TextEditingController _nameController;
+  late TextEditingController _locationController;
+  late TextEditingController _maxMemberController;
+  late TextEditingController _contactPersonController;
+  late TextEditingController _contactPhoneController;
+  late TextEditingController _descriptionController;
+
   String _sportsType = "Futsal"; // Default value matched to options options
-  String _location = "";
-  int _maxMember = 50; // Default value
-  String _contactPerson = "";
-  String _contactPhone = "";
-  String _description = "";
   
   // Image Handling
   File? _imageFile; // For Mobile (Android/iOS)
@@ -44,36 +45,91 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
 
   bool _isLoading = false;
 
+  bool _isDetailFetched = false;
+
   @override
   void initState() {
     super.initState();
+    
+    // Initialize Controllers with default values
+    _nameController = TextEditingController();
+    _locationController = TextEditingController();
+    _maxMemberController = TextEditingController(text: "50");
+    _contactPersonController = TextEditingController();
+    _contactPhoneController = TextEditingController();
+    _descriptionController = TextEditingController();
+
     if (widget.communityToEdit != null) {
-      _initEditMode();
+      _initEditMode(widget.communityToEdit!);
+      // Fetch full details to get description if missing
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _fetchFullDetails();
+      });
     }
   }
 
-  void _initEditMode() {
-    final data = widget.communityToEdit!;
-    _name = data['community_name'] ?? "";
-    _description = data['description'] ?? "";
-    _location = data['location'] ?? "";
-    _maxMember = data['max_member'] ?? 50;
-    _contactPerson = data['contact_person'] ?? data['contact_person_name'] ?? "";
-    _contactPhone = data['contact_phone'] ?? "";
-    _existingImageUrl = data['image_url'];
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _locationController.dispose();
+    _maxMemberController.dispose();
+    _contactPersonController.dispose();
+    _contactPhoneController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  void _initEditMode(Map<String, dynamic> data) {
+    _nameController.text = data['community_name'] ?? "";
+    _descriptionController.text = data['description'] ?? "";
+    _locationController.text = data['location'] ?? "";
+    _maxMemberController.text = (data['max_member'] ?? 50).toString();
+    _contactPersonController.text = data['contact_person'] ?? data['contact_person_name'] ?? "";
+    _contactPhoneController.text = data['contact_phone'] ?? "";
     
-    // Normalize Sports Type (Ensure it exists in options, else add or default)
+    // Handle Image URL Prefix
+    String? imgUrl = data['image_url'];
+    if (imgUrl != null && imgUrl.isNotEmpty && !imgUrl.startsWith('http')) {
+        _existingImageUrl = "${Config.baseUrl}$imgUrl";
+    } else {
+        _existingImageUrl = imgUrl;
+    }
+    
+    // Normalize Sports Type
     String type = data['sports_type'] ?? "Futsal";
-    // Capitalize first letter logic or matching exact string
     if (_sportsOptions.contains(type)) {
       _sportsType = type;
     } else {
-        // Try to match ignoring case
         final match = _sportsOptions.firstWhere(
            (e) => e.toLowerCase() == type.toLowerCase(), 
            orElse: () => "Futsal"
         );
         _sportsType = match;
+    }
+  }
+
+  Future<void> _fetchFullDetails() async {
+    final request = context.read<CookieRequest>();
+    final pk = widget.communityToEdit!['pk'];
+    try {
+      final response = await request.get('${Config.baseUrl}${Config.communityDetailBase}$pk/');
+      // Expected response: Map with full details
+      // Assuming response is Map directly or we check format
+      // Note: communityDetailBase is /community/api/community/ -> + pk + /
+      
+      // If response is the community object directly (which it usually is for DetailView)
+      // Check structure
+      if (response != null && response is Map) {
+         // Re-populate with full data
+         // Map keys might be slightly different if using ModelSerializer vs manual json
+         // But usually consistent.
+         // Let's assume consistent keys with what we have + description.
+         setState(() {
+            _initEditMode(response as Map<String, dynamic>);
+         });
+      }
+    } catch (e) {
+      print("Error fetching details: $e");
     }
   }
 
@@ -123,13 +179,13 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
     try {
       // 1. Prepare Payload
       final Map<String, dynamic> payload = {
-        "community_name": _name,
-        "description": _description,
-        "location": _location,
+        "community_name": _nameController.text,
+        "description": _descriptionController.text,
+        "location": _locationController.text,
         "sports_type": _sportsType,
-        "max_member": _maxMember.toString(),
-        "contact_person": _contactPerson,
-        "contact_phone": _contactPhone,
+        "max_member": _maxMemberController.text,
+        "contact_person": _contactPersonController.text,
+        "contact_phone": _contactPhoneController.text,
       };
 
       // 2. Handle Image
@@ -239,11 +295,10 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
               // NAMA KOMUNITAS
               _buildLabel("NAMA KOMUNITAS", true),
               TextFormField(
-                initialValue: _name,
+                controller: _nameController,
                 decoration: _inputDecoration("Contoh: Futsal Arena Senayan"),
                 validator: (value) =>
                     value == null || value.isEmpty ? "Nama komunitas wajib diisi" : null,
-                onSaved: (value) => _name = value!,
               ),
               const SizedBox(height: 16),
 
@@ -267,18 +322,17 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
               // LOKASI
               _buildLabel("LOKASI", true),
               TextFormField(
-                initialValue: _location,
+                controller: _locationController,
                 decoration: _inputDecoration("Contoh: Jakarta Selatan"),
                 validator: (value) =>
                     value == null || value.isEmpty ? "Lokasi wajib diisi" : null,
-                onSaved: (value) => _location = value!,
               ),
               const SizedBox(height: 16),
 
               // MAKSIMAL ANGGOTA
               _buildLabel("MAKSIMAL ANGGOTA", true),
               TextFormField(
-                initialValue: _maxMember.toString(),
+                controller: _maxMemberController,
                 decoration: _inputDecoration("50"),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -286,30 +340,27 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
                   if (int.tryParse(value) == null) return "Harus berupa angka";
                   return null;
                 },
-                onSaved: (value) => _maxMember = int.parse(value!),
               ),
               const SizedBox(height: 16),
 
               // NAMA CONTACT PERSON
               _buildLabel("NAMA CONTACT PERSON", true),
               TextFormField(
-                initialValue: _contactPerson,
+                controller: _contactPersonController,
                 decoration: _inputDecoration("juragan01"),
                 validator: (value) =>
                     value == null || value.isEmpty ? "Contact Person wajib diisi" : null,
-                onSaved: (value) => _contactPerson = value!,
               ),
               const SizedBox(height: 16),
 
               // NOMOR TELEPON
               _buildLabel("NOMOR TELEPON", true),
               TextFormField(
-                initialValue: _contactPhone, 
+                controller: _contactPhoneController, 
                 decoration: _inputDecoration("08123456789"),
                 keyboardType: TextInputType.phone,
                 validator: (value) =>
                     value == null || value.isEmpty ? "Nomor telepon wajib diisi" : null,
-                onSaved: (value) => _contactPhone = value!,
               ),
               const SizedBox(height: 16),
 
@@ -402,12 +453,11 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
               // DESKRIPSI
               _buildLabel("DESKRIPSI", true),
               TextFormField(
-                initialValue: _description,
+                controller: _descriptionController,
                 maxLines: 4,
                 decoration: _inputDecoration("Ceritakan tentang komunitas ini...."),
                 validator: (value) =>
                     value == null || value.isEmpty ? "Deskripsi wajib diisi" : null,
-                onSaved: (value) => _description = value!,
               ),
               const SizedBox(height: 24),
 

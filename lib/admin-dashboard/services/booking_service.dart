@@ -169,11 +169,43 @@ class AdminBookingService {
           'jumlah_ulasan': item['jumlah_ulasan'] ?? item['review_count'] ?? 0,
           'jenis_olahraga': item['jenis'] ?? item['jenis_olahraga'], // Dashboard usually uses 'jenis'
           'fasilitas': item['fasilitas'] ?? '-',
+          'deskripsi': item['deskripsi'] ?? item['description'] ?? '',
         };
       }).toList();
       
     } catch (e) {
       print('❌ Get Lapangan List Error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get Lapangan Detail
+  static Future<Map<String, dynamic>> getFieldDetail(
+    CookieRequest request,
+    int id,
+  ) async {
+    try {
+      // Try fetching from the public API detail endpoint as it likely contains full info
+      // Endpoint: /booking/api/lapangan/<id>/
+      final response = await request.get('${Config.baseUrl}${Config.lapanganDetailEndpoint}$id/');
+      
+      print('🔵 Get Field Detail Response: $response');
+      
+      // If response is list, take first. If map, take as is.
+      if (response is List && response.isNotEmpty) {
+        return response[0] as Map<String, dynamic>;
+      } else if (response is Map) {
+         // Some endpoints wrap in {status: true, data: ...} or just return the object
+         if (response.containsKey('data')) {
+            return response['data'] is List ? response['data'][0] : response['data'];
+         }
+         return response as Map<String, dynamic>;
+      }
+      
+      throw Exception('Format respon tidak dikenali');
+      
+    } catch (e) {
+      print('❌ Get Field Detail Error: $e');
       rethrow;
     }
   }
