@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:lapangin_mobile/config.dart';
 import 'package:lapangin_mobile/admin-dashboard/services/admin_dashboard_service.dart';
 import 'package:lapangin_mobile/admin-dashboard/widgets/admin_community_card.dart';
+import 'package:lapangin_mobile/admin-dashboard/widgets/admin_left_drawer.dart';
 import 'package:lapangin_mobile/admin-dashboard/screens/create_community_screen.dart';
 import 'package:lapangin_mobile/community/screens/community_detail_page.dart'; // To view detail
 import 'package:lapangin_mobile/community/models/community_models.dart'; // If needed for casting
@@ -113,12 +114,13 @@ class _AdminCommunityPageState extends State<AdminCommunityPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AdminLeftDrawer(activePage: 'Komunitas'),
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text("Admin Communities", style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        leading: const BackButton(color: Colors.black),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

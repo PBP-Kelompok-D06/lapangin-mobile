@@ -13,12 +13,12 @@ import 'package:lapangin_mobile/admin-dashboard/screens/admin_community_page.dar
 import 'package:lapangin_mobile/admin-dashboard/screens/admin_field_page.dart';
 import 'package:lapangin_mobile/admin-dashboard/screens/admin_field_form_page.dart';
 
-import 'package:lapangin_mobile/landing/widgets/left_drawer.dart';
+import 'package:lapangin_mobile/admin-dashboard/widgets/admin_left_drawer.dart';
 
 class AdminDashboardPage extends StatefulWidget {
-  final String username;
+  final String? username;
 
-  const AdminDashboardPage({super.key, required this.username});
+  const AdminDashboardPage({super.key, this.username});
 
   @override
   State<AdminDashboardPage> createState() => _AdminDashboardPageState();
@@ -95,7 +95,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50], // Light background
-      drawer: const LeftDrawer(),
+      drawer: const AdminLeftDrawer(activePage: 'Home'),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -104,7 +104,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           Row(
             children: [
               Text(
-                widget.username,
+                widget.username ?? "Admin",
                 style: const TextStyle(
                   color: Colors.black87,
                   fontWeight: FontWeight.bold,

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import '../services/booking_service.dart';
 import 'admin_booking_pending_page.dart';
+import 'package:lapangin_mobile/admin-dashboard/widgets/admin_left_drawer.dart';
 
 class AdminTransactionHistoryPage extends StatefulWidget {
   const AdminTransactionHistoryPage({super.key});
@@ -80,6 +81,7 @@ class _AdminTransactionHistoryPageState extends State<AdminTransactionHistoryPag
     final transactions = (_data?['data'] as List<dynamic>?) ?? [];
     
     return Scaffold(
+      drawer: const AdminLeftDrawer(activePage: 'Riwayat Transaksi'),
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,

@@ -4,6 +4,7 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:lapangin_mobile/admin-dashboard/services/booking_service.dart';
 import 'package:lapangin_mobile/admin-dashboard/screens/admin_field_form_page.dart';
 import 'package:lapangin_mobile/admin-dashboard/widgets/admin_field_card.dart';
+import 'package:lapangin_mobile/admin-dashboard/widgets/admin_left_drawer.dart';
 
 class AdminFieldPage extends StatefulWidget {
   const AdminFieldPage({super.key});
@@ -79,6 +80,7 @@ class _AdminFieldPageState extends State<AdminFieldPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AdminLeftDrawer(activePage: 'Lapangan'),
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text("Kelola Lapangan", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
