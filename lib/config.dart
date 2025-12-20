@@ -1,7 +1,7 @@
 // lapangin/lib/config.dart
 class Config {
   // Set to true for Development (Local), false for Production (PWS)
-  static const bool isDev = false; 
+  static const bool isDev = true; 
   
   static const String _pwsUrl = "https://zibeon-jonriano-lapangin2.pbp.cs.ui.ac.id";
   static const String _localUrl = "http://localhost:8000"; // Use http://10.0.2.2:8000 for Android emulator

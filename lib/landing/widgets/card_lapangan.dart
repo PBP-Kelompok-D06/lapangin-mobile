@@ -1,4 +1,3 @@
-//lapangin/lib/landing/widgets/card_lapangan.dart
 import 'package:flutter/material.dart';
 import 'package:lapangin_mobile/landing/models/lapangan_entry.dart';
 import 'package:lapangin_mobile/config.dart';
@@ -38,51 +37,47 @@ class LapanganEntryCard extends StatelessWidget {
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
               ),
-              
-child: AspectRatio(
-  aspectRatio: 16 / 9,
-  child: lapangan.image.isNotEmpty
-      ? Image.network(
-          // ✅ AKSES LANGSUNG tanpa proxy
-          "${Config.baseUrl}${lapangan.image}",
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            print("❌ Image load error: $error");
-            print("Full URL: ${Config.baseUrl}${lapangan.image}");
-            return Container(
-              color: Colors.grey[200],
-              child: const Center(
-                child: Icon(
-                  Icons.sports_soccer,
-                  size: 40,
-                  color: Colors.grey,
-                ),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: lapangan.image.isNotEmpty
+                    ? Image.network(
+                      "${Config.baseUrl}/proxy-image/?url=${Uri.encodeComponent(lapangan.image)}",
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: Icon(
+                                Icons.sports_soccer,
+                                size: 40,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          );
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : Container(
+                        color: Colors.grey[200],
+                        child: const Center(
+                          child: Icon(
+                            Icons.sports_soccer,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
               ),
-            );
-          },
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Container(
-              color: Colors.grey[200],
-              child: const Center(
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                ),
-              ),
-            );
-          },
-        )
-      : Container(
-          color: Colors.grey[200],
-          child: const Center(
-            child: Icon(
-              Icons.sports_soccer,
-              size: 40,
-              color: Colors.grey,
-            ),
-          ),
-        ),
-),
             ),
 
             // Konten Card
