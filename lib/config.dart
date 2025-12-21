@@ -35,10 +35,10 @@ class Config {
   static const String adminTransactionListEndpoint = "/dashboard/transaksi/";
   
   // Menggunakan Hybrid View untuk operasi CRUD (Create/Update/Delete) karena API View mungkin belum stabil
-  static const String adminLapanganCreateEndpoint = "/dashboard/lapangan/create/";
+  static const String adminLapanganCreateEndpoint = "/dashboard/api/lapangan/create/";
   static const String adminLapanganListEndpoint = "/dashboard/api/lapangan/list/"; 
-  static const String adminLapanganUpdateEndpoint = "/dashboard/lapangan/"; // + <id>/update/
-  static const String adminLapanganDeleteEndpoint = "/dashboard/lapangan/"; // + <id>/delete/
+  static const String adminLapanganUpdateEndpoint = "/dashboard/api/lapangan/"; // + <id>/update/
+  static const String adminLapanganDeleteEndpoint = "/dashboard/api/lapangan/"; // + <id>/delete/
   static const String adminCommunityDeleteEndpoint = "/community/admin/"; 
   static const String communityPostsBase = "/community/api/community/";
   static const String communityDetailBase = "/community/api/"; // Alias for detailed actions

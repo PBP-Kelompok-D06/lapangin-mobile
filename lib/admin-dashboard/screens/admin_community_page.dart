@@ -81,23 +81,48 @@ class _AdminCommunityPageState extends State<AdminCommunityPage> {
      if (confirm == true) {
         final request = context.read<CookieRequest>();
         try {
-           // We assume adminCommunityDeleteEndpoint is set to "/community/admin/"
-           // Full URL: /community/admin/<pk>/delete/
-           final url = "${Config.baseUrl}${Config.adminCommunityDeleteEndpoint}$pk/delete/";
+           // Full URL with format=json
+           final url = "${Config.baseUrl}${Config.adminCommunityDeleteEndpoint}$pk/delete/?format=json";
            
-           // Since the view likely redirects, we just check if it throws error or returns something.
-           // Ideally we should use request.post 
+           // Use request.post
            final response = await request.post(url, {});
            
-           // If we reach here without exception, assume success or check response.
-           // If response is HTML, it might be string. If JSON, map. 
-           // We'll just refresh list.
-           ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text("Komunitas berhasil dihapus!")),
-           );
-           _refreshCommunities();
+           bool success = false;
+           String message = "";
+
+           // Handle HTML response (Success case for some Django views)
+           if (response is String && response.toString().toLowerCase().contains('<!doctype html>')) {
+              success = true;
+              message = "Komunitas berhasil dihapus!";
+           } else if (response is Map) {
+              if (response['status'] == true || response['status'] == 'success') {
+                 success = true;
+                 message = "Komunitas berhasil dihapus!";
+              } else {
+                 message = response['message'] ?? "Gagal menghapus.";
+              }
+           } else {
+             // Fallback success
+             success = true;
+             message = "Komunitas berhasil dihapus!";
+           }
+
+           if (success) {
+             if (!mounted) return;
+             ScaffoldMessenger.of(context).showSnackBar(
+               SnackBar(content: Text(message)),
+             );
+             // Force refresh immediately
+             _refreshCommunities(); 
+           } else {
+             if (!mounted) return;
+             ScaffoldMessenger.of(context).showSnackBar(
+               SnackBar(content: Text(message)),
+             );
+           }
 
         } catch (e) {
+           if (!mounted) return;
            ScaffoldMessenger.of(context).showSnackBar(
              SnackBar(content: Text("Gagal menghapus: $e")),
            );
