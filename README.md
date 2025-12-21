@@ -1,19 +1,14 @@
-# lapangin
+# Nama Aplikasi : Lapang.in
 
-A new Flutter project.
+[![Build Status](https://app.bitrise.io/app/6f9e924f-d814-4486-89f8-5553f9a81424/status.svg?token=iwHHOylCZLxnEJxHvDNsww&branch=master)](https://app.bitrise.io/app/6f9e924f-d814-4486-89f8-5553f9a81424)
 
-## Getting Started
+# Download
 
-This project is a starting point for a Flutter application.
+Download aplikasi versi terbaru: [Download APK](https://app.bitrise.io/app/6f9e924f-d814-4486-89f8-5553f9a81424/installable-artifacts/4088555cb91eaff6/public-install-page/7719b93e959e70a3f1b7f182c35d11e5)
 
-A few resources to get you started if this is your first Flutter project:
+# Link Video Promosi
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+[![Tonton Video Promosi](https://img.youtube.com/vi/EBXJ6XYg2wo/0.jpg)](https://youtu.be/EBXJ6XYg2wo?si=W4oEBiw6WEn9mnjU)
 
 ---
 
@@ -75,21 +70,23 @@ Tujuan utama kami adalah mengubah pengalaman booking lapangan yang penuh ketidak
 
 ## Daftar Modul yang Diimplementasikan
 
-| Modul | Penanggung Jawab |
-|--------|------------------|
-| 1. Autentikasi (Login, Logout, Register, Role) | Zibeon |
-| 2. Booking (Reservasi Lapangan) | Zibeon |
-| 3. Review (Ulasan & Rating) | Syifa |
-| 4. Gallery (Foto Lapangan) | Saikhah |
-| 5. Community (Forum Komunitas) | Kenzie |
-| 6. Admin-Dashboard (Manajemen Data) | Faishal |
+| Modul                                          | Penanggung Jawab |
+| ---------------------------------------------- | ---------------- |
+| 1. Autentikasi (Login, Logout, Register, Role) | Zibeon           |
+| 2. Booking (Reservasi Lapangan)                | Zibeon           |
+| 3. Review (Ulasan & Rating)                    | Syifa            |
+| 4. Gallery (Foto Lapangan)                     | Saikhah          |
+| 5. Community (Forum Komunitas)                 | Kenzie           |
+| 6. Admin-Dashboard (Manajemen Data)            | Faishal          |
 
 ---
 
 ## Peran atau Aktor Pengguna Aplikasi
 
 ### 1. Penyewa Lapangan
+
 Pengguna yang telah login dan dapat mengakses fitur:
+
 - Login & Logout
 - Mengelola profil
 - Booking lapangan
@@ -102,7 +99,9 @@ Pengguna yang telah login dan dapat mengakses fitur:
 - Mengajukan permintaan komunitas baru
 
 ### 2. Pemilik Lapangan
+
 Pengelola lapangan dengan akses:
+
 - Login & Logout
 - Mengelola jadwal booking
 - Memoderasi ulasan
@@ -115,9 +114,11 @@ Pengelola lapangan dengan akses:
 ## Alur Pengintegrasian dengan Web Service
 
 ### 1. Pendahuluan
+
 Aplikasi web Django yang telah dibuat pada PTS akan diintegrasikan dengan aplikasi mobile Flutter.
 
 ### 2. Persiapan Backend untuk Integrasi
+
 - **2.1. Penyiapan Aplikasi Autentikasi**  
   Modul autentikasi disiapkan dengan endpoint untuk login, register, dan logout.
 
@@ -137,6 +138,7 @@ Aplikasi web Django yang telah dibuat pada PTS akan diintegrasikan dengan aplika
   Endpoint untuk menerima data dari Flutter dalam format JSON.
 
 ### 3. Integrasi pada Sisi Flutter
+
 - **3.1. Penyediaan State Management melalui Provider**  
   Menggunakan Provider untuk mengelola status autentikasi.
 
@@ -159,6 +161,7 @@ Aplikasi web Django yang telah dibuat pada PTS akan diintegrasikan dengan aplika
   Logout menghapus sesi dan mengarahkan pengguna ke halaman login.
 
 ### 4. Alur Integrasi Secara Keseluruhan
+
 - Django menyediakan endpoint autentikasi dan data.
 - Flutter mengelola sesi dengan Provider dan CookieRequest.
 - Pengguna login via Flutter, Django mengembalikan cookie sesi.
@@ -168,6 +171,7 @@ Aplikasi web Django yang telah dibuat pada PTS akan diintegrasikan dengan aplika
 - Logout menghapus sesi di Django.
 
 ### 5. Kesimpulan
+
 Integrasi berhasil dilakukan dengan menyiapkan backend Django sebagai web service dan menyesuaikan Flutter untuk mengelola autentikasi dan komunikasi data.
 
 ---
@@ -175,5 +179,3 @@ Integrasi berhasil dilakukan dengan menyiapkan backend Django sebagai web servic
 ## Link Figma
 
 [https://www.figma.com/design/tns2TMUBqT8nJTY6pSLh3S/Lapangin?node-id=0-1&t=2Xltc6nUPHshY1KH-1](https://www.figma.com/design/tns2TMUBqT8nJTY6pSLh3S/Lapangin?node-id=0-1&t=2Xltc6nUPHshY1KH-1)
-
-
