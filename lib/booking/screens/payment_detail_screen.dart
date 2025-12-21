@@ -252,37 +252,59 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
     }
   }
 
-  Future<void> _confirmPayment() async {
-    if (_booking == null) return;
+Future<void> _confirmPayment() async {
+  if (_booking == null) return;
 
-    final whatsapp = _booking!.pemilik?.nomorWhatsapp;
-    if (whatsapp == null || whatsapp.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Nomor WhatsApp tidak tersedia'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    final message = Uri.encodeComponent(
-      'Halo Admin, saya *${widget.username}* telah melakukan pembayaran untuk booking ID #${_booking!.id}. Mohon validasi bukti transfer.',
+  final whatsapp = _booking!.pemilik?.nomorWhatsapp;
+  if (whatsapp == null || whatsapp.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Nomor WhatsApp tidak tersedia'),
+        backgroundColor: Colors.red,
+      ),
     );
-    
-    final url = 'https://wa.me/$whatsapp?text=$message';
-    
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tidak dapat membuka WhatsApp'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+    return;
   }
+
+  // Bersihkan nomor (hapus +, spasi, dll)
+  final cleanNumber = whatsapp.replaceAll(RegExp(r'[^\d]'), '');
+  
+  // Pastikan format +62 untuk Indonesia
+  final formattedNumber = cleanNumber.startsWith('62') 
+      ? cleanNumber 
+      : '62${cleanNumber.startsWith('0') ? cleanNumber.substring(1) : cleanNumber}';
+
+  final message = Uri.encodeComponent(
+    'Halo Admin, saya *${widget.username}* telah melakukan pembayaran untuk booking ID #${_booking!.id}. Mohon validasi bukti transfer.',
+  );
+  
+  final url = 'https://wa.me/$formattedNumber?text=$message';
+  
+  print("=== WhatsApp URL Debug ===");
+  print("Original: $whatsapp");
+  print("Formatted: $formattedNumber");
+  print("URL: $url");
+  
+  try {
+    final uri = Uri.parse(url);
+    
+    // Coba launch langsung tanpa canLaunchUrl
+    await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+  } catch (e) {
+    print("Error launching WhatsApp: $e");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Tidak dapat membuka WhatsApp: ${e.toString()}'),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 5),
+      ),
+    );
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {

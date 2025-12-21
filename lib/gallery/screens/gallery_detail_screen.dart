@@ -10,9 +10,6 @@ import 'package:provider/provider.dart';
 import 'package:lapangin_mobile/booking/screens/booking_screen.dart';
 import 'dart:math';
 
-/// NOTE:
-/// - ganti BASE_URL sesuai environment kamu (emulator android: 10.0.2.2)
-/// - tambahkan permission Internet di AndroidManifest jika perlu
 
 class GalleryDetailScreen extends StatefulWidget {
   final int lapanganId;
