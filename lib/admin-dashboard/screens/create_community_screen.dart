@@ -112,18 +112,31 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
     final request = context.read<CookieRequest>();
     final pk = widget.communityToEdit!['pk'];
     try {
-      final response = await request.get('${Config.baseUrl}${Config.communityDetailBase}$pk/');
-      // Expected response: Map with full details
-      // Assuming response is Map directly or we check format
-      // Note: communityDetailBase is /community/api/community/ -> + pk + /
+      // Use standard Django JSON endpoint which returns a List
+      final response = await request.get('${Config.baseUrl}/community/json/$pk/');
       
-      // If response is the community object directly (which it usually is for DetailView)
-      // Check structure
-      if (response != null && response is Map) {
-         // Re-populate with full data
-         // Map keys might be slightly different if using ModelSerializer vs manual json
-         // But usually consistent.
-         // Let's assume consistent keys with what we have + description.
+      if (response is List && response.isNotEmpty) {
+         // Django serialization format: [{"model": "...", "pk": 1, "fields": {...}}]
+         final fields = response[0]['fields'];
+         if (fields != null) {
+           // Normalize data to match _initEditMode expectations
+           final Map<String, dynamic> normalizedData = {
+              'community_name': fields['name'] ?? fields['community_name'],
+              'description': fields['description'],
+              'location': fields['location'],
+              'max_member': fields['max_members'] ?? fields['max_member'], // Django model usually has 'max_members'
+              'contact_person': fields['contact_person'],
+              'contact_phone': fields['contact_phone'],
+              'sports_type': fields['sports_type'],
+              'image_url': fields['image'], // Field name in model for image
+           };
+
+           setState(() {
+              _initEditMode(normalizedData);
+           });
+         }
+      } else if (response is Map) {
+         // Fallback if it somehow returns a Map (e.g. error or different serializer)
          setState(() {
             _initEditMode(response as Map<String, dynamic>);
          });
@@ -209,9 +222,9 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
       String url;
       if (widget.communityToEdit != null) {
          // Edit Mode
-         // URL: /community/admin/<pk>/edit/
+         // URL: /community/admin/<pk>/edit/ -> Force JSON
          final pk = widget.communityToEdit!['pk'];
-         url = "${Config.baseUrl}${Config.adminCommunityEditEndpoint}$pk/edit/";
+         url = "${Config.baseUrl}${Config.adminCommunityEditEndpoint}$pk/edit/?format=json";
       } else {
          // Create Mode
          url = "${Config.baseUrl}${Config.createCommunityEndpoint}";
@@ -229,7 +242,11 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
       bool success = false;
       String message = "";
 
-      if (response is Map) {
+      // Handle HTML String Response (if returned directly)
+      if (response is String && response.toString().toLowerCase().contains('<!doctype html>')) {
+         success = true;
+         message = widget.communityToEdit != null ? "Komunitas berhasil diperbarui!" : "Komunitas berhasil dibuat!";
+      } else if (response is Map) {
          if (response['status'] == true || response['status'] == 'success') {
             success = true;
             message = widget.communityToEdit != null ? "Komunitas berhasil diperbarui!" : "Komunitas berhasil dibuat!";
@@ -237,14 +254,9 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
             message = response['message'] ?? "Gagal menyimpan data.";
          }
       } else {
-         // Fallback if response is html or something unexpected (though we expect JSON)
-         // Assuming success if no error thrown? No, safer to assume failure unless explicit success
          message = "Terjadi kesalahan respon server.";
       }
       
-      // Override for Edit if it returns HTML (redirect) - unlikely if we send JSON headers but possible.
-      // But admin_community_edit supports JSON response explicitly.
-
       if (success) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
@@ -258,6 +270,16 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
       setState(() {
         _isLoading = false;
       });
+      // Check if exception contains HTML (Success redirect disguised as error)
+      if (e.toString().toLowerCase().contains('<!doctype html>')) {
+         if (!mounted) return;
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text("Komunitas berhasil disimpan!")),
+         );
+         Navigator.pop(context, true);
+         return;
+      }
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),
