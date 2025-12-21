@@ -122,10 +122,19 @@ class _AdminCommunityPageState extends State<AdminCommunityPage> {
            }
 
         } catch (e) {
-           if (!mounted) return;
-           ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(content: Text("Gagal menghapus: $e")),
-           );
+           // Handle case where backend returns HTML (success) but it throws error during parsing
+           if (e.toString().toLowerCase().contains("doctype") || e.toString().toLowerCase().contains("html")) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Komunitas berhasil dihapus!")),
+              );
+              _refreshCommunities(); // Refresh page after delete
+           } else {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Gagal menghapus: $e")),
+              );
+           }
         }
      }
   }

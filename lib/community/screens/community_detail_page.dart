@@ -98,7 +98,12 @@ class _CommunityDetailPageState extends State<CommunityDetailPage> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery, 
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 70,
+    );
     if (pickedFile != null) {
       setState(() {
         _selectedImage = pickedFile;
