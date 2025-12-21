@@ -10,6 +10,12 @@ Download aplikasi versi terbaru: [Download APK](https://app.bitrise.io/app/6f9e9
 
 [![Tonton Video Promosi](https://img.youtube.com/vi/EBXJ6XYg2wo/0.jpg)](https://youtu.be/EBXJ6XYg2wo?si=W4oEBiw6WEn9mnjU)
 
+# Blog Bonus Individu
+Zibeon Jonriano Wisnumoerti - Advanced Widget
+https://medium.com/@zibeonjonriano21/menyusun-alur-booking-lapangan-yang-nyaman-dynamic-form-countdown-pembayaran-dan-konfirmasi-via-70e843addb6c
+
+Syifa Anabella - Advanced Widget
+https://medium.com/@syifaakrt/implementasi-filter-untuk-kenyamanan-pengguna-aplikasi-lapang-in-2e66232a8c68
 ---
 
 # Lapangin
