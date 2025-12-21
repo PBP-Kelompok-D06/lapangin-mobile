@@ -322,7 +322,8 @@ class _BookingScreenState extends State<BookingScreen> {
                   ),
                   // Collapsing Image Header
                   flexibleSpace: FlexibleSpaceBar(
-                    background: Container(
+                    background: SafeArea(
+                    child : Container(
                       color: Colors.white,
                       child: Stack(
                         fit: StackFit.expand,
@@ -332,7 +333,7 @@ class _BookingScreenState extends State<BookingScreen> {
                             padding: const EdgeInsets.only(
                               left: 16,
                               right: 16,
-                              top: 60, // Space untuk AppBar
+                              top: 80, // Space untuk AppBar
                               bottom: 20,
                             ),
                             child: AspectRatio(
@@ -375,7 +376,7 @@ class _BookingScreenState extends State<BookingScreen> {
                             padding: const EdgeInsets.only(
                               left: 16,
                               right: 16,
-                              top: 60,
+                              top: 80,
                               bottom: 20,
                             ),
                             child: AspectRatio(
@@ -418,6 +419,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       ),
                     ),
                   ),
+                ),
                 ),
 
                 // Content
