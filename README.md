@@ -4,7 +4,7 @@
 
 # Download
 
-Download aplikasi versi terbaru: [Download APK](https://app.bitrise.io/app/6f9e924f-d814-4486-89f8-5553f9a81424/installable-artifacts/4088555cb91eaff6/public-install-page/7719b93e959e70a3f1b7f182c35d11e5)
+Download aplikasi versi terbaru: [Download APK](https://app.bitrise.io/app/6f9e924f-d814-4486-89f8-5553f9a81424/installable-artifacts/47bff2a48f2809ae/public-install-page/d776ed00f92321fdd90a69aee312740d)
 
 # Link Video Promosi
 
