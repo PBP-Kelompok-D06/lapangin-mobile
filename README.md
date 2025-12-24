@@ -20,7 +20,7 @@ https://medium.com/@syifaakrt/implementasi-filter-untuk-kenyamanan-pengguna-apli
 
 # Link Website Django
 
-[text](https://zibeon-jonriano-lapangin2.pbp.cs.ui.ac.id/)
+[Web Lapang.in](https://zibeon-jonriano-lapangin2.pbp.cs.ui.ac.id/)
 
 ---
 
